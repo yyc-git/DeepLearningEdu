@@ -1,0 +1,12 @@
+{
+    "name": "wonder-deeplearning-education",
+    "version": "0.0.1",
+    "description": "",
+    "type": "module",
+    "homepage": "https://github.com/yyc-git/DeepLearningEdu",
+    "authors": "Wonder",
+    "scripts": {},
+    "devDependencies": {},
+    "dependencies": {
+    }
+}
