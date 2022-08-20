@@ -7,13 +7,23 @@ reference/
 node_modules/
 mine/
 
+test/
+
+.github/
+
+donate/
+
+lib/bs/
+
+lib/js/test/
+
+coverage
+
+dist/
+
 npm-debug
 
 .bsb.lock
 
 yarn.lock
 
-
-example/
-
-output/

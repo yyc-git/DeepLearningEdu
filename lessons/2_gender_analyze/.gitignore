@@ -7,13 +7,20 @@ reference/
 node_modules/
 mine/
 
+lib/bs/
+
+lib/ocaml/
+
+lib/es6_global/test/
+lib/js/test/
+
+coverage
+
+dist/
+
 npm-debug
 
 .bsb.lock
 
 yarn.lock
 
-
-example/
-
-output/
