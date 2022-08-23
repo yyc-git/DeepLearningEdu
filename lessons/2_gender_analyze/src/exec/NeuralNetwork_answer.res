@@ -90,7 +90,7 @@ let forward = (state: state, sampleData: sampleData): float => {
 let inference = (state: state, sampleData: sampleData): gender => {
   Js.log(forward(state, sampleData))
 
-  forward(state, sampleData)->_activateFunc->_convert
+  forward(state, sampleData)->_convert
 }
 
 let state = createState()
