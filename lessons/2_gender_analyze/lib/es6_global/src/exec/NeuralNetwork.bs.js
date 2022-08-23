@@ -40,7 +40,7 @@ function forward(state, sampleData) {
 }
 
 function inference(state, sampleData) {
-  return _convert(1);
+  return 1;
 }
 
 createState(undefined);
@@ -65,7 +65,7 @@ var allSampleData = [
 ];
 
 allSampleData.forEach(function (sampleData) {
-      console.log(_convert(1));
+      console.log(1);
       
     });
 

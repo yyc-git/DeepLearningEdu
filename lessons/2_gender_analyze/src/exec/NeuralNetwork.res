@@ -52,7 +52,8 @@ let forward = (state: state, sampleData: sampleData): float => {
 }
 
 let inference = (state: state, sampleData: sampleData): gender => {
-  forward(state, sampleData)->_activateFunc->_convert
+  //TODO implement
+  Obj.magic(1)
 }
 
 let state = createState()
