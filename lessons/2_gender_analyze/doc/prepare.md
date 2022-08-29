@@ -136,6 +136,12 @@
 
 - 后向传播
 
+什么是损失函数
+
+为什么
+
+
+
 不可能无限的增加神经网络中的权重、偏移数量（如增加层、增加每层的神经元）：
 因为计算的成本增加！
 
@@ -143,13 +149,50 @@
 
 所以总会出现大于的情况！
 
-因此，激活函数无法返回确定的0或1，而是返回[0,1]，表示概率
+输出值!=真实值
 
-给出一组权重、偏移，使得结果的概率最大->给出一组权重、偏移，使得结果误差最小
+<!-- 因此，激活函数无法返回确定的0或1，而是返回[0,1]，表示概率
+
+给出一组权重、偏移，使得结果的概率最大->给出一组权重、偏移，使得结果误差最小 -->
 
 <!-- 如何表示误差最小？ -->
 
 
 
-什么时候需要数据处理？（收敛慢时？）
+
+
+随机梯度下降
+
+
+
+
+
+
+下节课：
+
+
+- 链式求导
+
+1/n -> remove -> sum to specific!
+
+
+
+- 实现Demo的后向传播的代码
+
+
+
+
+- why use sigmoid instead of Linear?
+https://stats.stackexchange.com/questions/271703/why-is-sigmoid-or-tanh-better-than-linear-slope-for-an-activation-function
+https://towardsdatascience.com/comparison-of-activation-functions-for-deep-neural-networks-706ac4284c8a
+
+测试收敛速度
+
+
+
+
+- 什么时候需要数据处理？（收敛慢时？）
 身高、体重减去一个数
+
+
+
