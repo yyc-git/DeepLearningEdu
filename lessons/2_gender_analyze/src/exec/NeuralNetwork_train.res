@@ -67,7 +67,7 @@ let createState = (): state => {
 
 let _activateFunc = x => x
 
-let _deriv_Linear = x => {
+let _deriv_linear = x => {
   1.
 }
 

@@ -72,7 +72,7 @@ function _activateFunc(x) {
   return 1 / (1 + Math.exp(-x));
 }
 
-function _deriv_Linear(x) {
+function _deriv_Sigmoid(x) {
   var fx = _activateFunc(x);
   return fx * (1 - fx);
 }
@@ -140,17 +140,17 @@ function train(state, features, labels) {
                         var net4 = match$2[1];
                         var net3 = match$2[0];
                         var d_E_d_y5 = -2 / n * (label - match$1[2]);
-                        var d_y5_d_w35 = match$1[0] * _deriv_Linear(net5);
-                        var d_y5_d_w45 = match$1[1] * _deriv_Linear(net5);
-                        var d_y5_d_b5 = _deriv_Linear(net5);
-                        var d_y5_d_y3 = state.weight35 * _deriv_Linear(net5);
-                        var d_y5_d_y4 = state.weight45 * _deriv_Linear(net5);
-                        var d_y3_d_w13 = x1 * _deriv_Linear(net3);
-                        var d_y3_d_w23 = x2 * _deriv_Linear(net3);
-                        var d_y3_d_b3 = _deriv_Linear(net3);
-                        var d_y4_d_w14 = x1 * _deriv_Linear(net4);
-                        var d_y4_d_w24 = x2 * _deriv_Linear(net4);
-                        var d_y4_d_b4 = _deriv_Linear(net4);
+                        var d_y5_d_w35 = match$1[0] * _deriv_Sigmoid(net5);
+                        var d_y5_d_w45 = match$1[1] * _deriv_Sigmoid(net5);
+                        var d_y5_d_b5 = _deriv_Sigmoid(net5);
+                        var d_y5_d_y3 = state.weight35 * _deriv_Sigmoid(net5);
+                        var d_y5_d_y4 = state.weight45 * _deriv_Sigmoid(net5);
+                        var d_y3_d_w13 = x1 * _deriv_Sigmoid(net3);
+                        var d_y3_d_w23 = x2 * _deriv_Sigmoid(net3);
+                        var d_y3_d_b3 = _deriv_Sigmoid(net3);
+                        var d_y4_d_w14 = x1 * _deriv_Sigmoid(net4);
+                        var d_y4_d_w24 = x2 * _deriv_Sigmoid(net4);
+                        var d_y4_d_b4 = _deriv_Sigmoid(net4);
                         return {
                                 weight13: state.weight13 - 0.1 * d_E_d_y5 * d_y5_d_y3 * d_y3_d_w13,
                                 weight14: state.weight14 - 0.1 * d_E_d_y5 * d_y5_d_y4 * d_y4_d_w14,
@@ -258,7 +258,7 @@ exports.ArraySt = ArraySt;
 exports.Neural_forward = Neural_forward;
 exports.createState = createState;
 exports._activateFunc = _activateFunc;
-exports._deriv_Linear = _deriv_Linear;
+exports._deriv_Sigmoid = _deriv_Sigmoid;
 exports.forward = forward$1;
 exports._convertLabelToFloat = _convertLabelToFloat;
 exports._computeLoss = _computeLoss;

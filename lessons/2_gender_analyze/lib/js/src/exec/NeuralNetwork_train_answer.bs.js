@@ -71,7 +71,7 @@ function _activateFunc(x) {
   return x;
 }
 
-function _deriv_Linear(x) {
+function _deriv_linear(x) {
   return 1;
 }
 
@@ -224,7 +224,7 @@ exports.ArraySt = ArraySt;
 exports.Neural_forward = Neural_forward;
 exports.createState = createState;
 exports._activateFunc = _activateFunc;
-exports._deriv_Linear = _deriv_Linear;
+exports._deriv_linear = _deriv_linear;
 exports.forward = forward$1;
 exports._convertLabelToFloat = _convertLabelToFloat;
 exports._computeLoss = _computeLoss;

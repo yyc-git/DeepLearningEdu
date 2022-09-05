@@ -71,7 +71,7 @@ function _activateFunc(x) {
   return x;
 }
 
-function _deriv_Linear(x) {
+function _deriv_linear(x) {
   return 1;
 }
 
@@ -225,7 +225,7 @@ export {
   Neural_forward ,
   createState ,
   _activateFunc ,
-  _deriv_Linear ,
+  _deriv_linear ,
   forward$1 as forward,
   _convertLabelToFloat ,
   _computeLoss ,

@@ -67,7 +67,7 @@ let createState = (): state => {
 
 let _activateFunc = x => x
 
-let _deriv_Linear = x => {
+let _deriv_linear = x => {
   1.
 }
 
@@ -120,6 +120,8 @@ let _convertLabelToFloat = label =>
   }
 
 let _computeLoss = (labels, outputs) => {
+  // Js.log((labels, outputs))
+
   labels->ArraySt.reduceOneParami((. result, label, i) => {
     result +. Js.Math.pow_float(~base=label -. outputs[i], ~exp=2.0)
   }, 0.) /. ArraySt.length(labels)->Obj.magic
@@ -141,22 +143,22 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
       let d_E_d_y5 = -2. /. n *. (label -. y5)
 
       // Neuron o5
-      let d_y5_d_w35 = y3 *. _deriv_Linear(net5)
-      let d_y5_d_w45 = y4 *. _deriv_Linear(net5)
-      let d_y5_d_b5 = _deriv_Linear(net5)
+      let d_y5_d_w35 = y3 *. _deriv_linear(net5)
+      let d_y5_d_w45 = y4 *. _deriv_linear(net5)
+      let d_y5_d_b5 = _deriv_linear(net5)
 
-      let d_y5_d_y3 = state.weight35 *. _deriv_Linear(net5)
-      let d_y5_d_y4 = state.weight45 *. _deriv_Linear(net5)
+      let d_y5_d_y3 = state.weight35 *. _deriv_linear(net5)
+      let d_y5_d_y4 = state.weight45 *. _deriv_linear(net5)
 
       // Neuron o3
-      let d_y3_d_w13 = x1 *. _deriv_Linear(net3)
-      let d_y3_d_w23 = x2 *. _deriv_Linear(net3)
-      let d_y3_d_b3 = _deriv_Linear(net3)
+      let d_y3_d_w13 = x1 *. _deriv_linear(net3)
+      let d_y3_d_w23 = x2 *. _deriv_linear(net3)
+      let d_y3_d_b3 = _deriv_linear(net3)
 
       // Neuron o4
-      let d_y4_d_w14 = x1 *. _deriv_Linear(net4)
-      let d_y4_d_w24 = x2 *. _deriv_Linear(net4)
-      let d_y4_d_b4 = _deriv_Linear(net4)
+      let d_y4_d_w14 = x1 *. _deriv_linear(net4)
+      let d_y4_d_w24 = x2 *. _deriv_linear(net4)
+      let d_y4_d_b4 = _deriv_linear(net4)
 
       // Update weights and biases
 
