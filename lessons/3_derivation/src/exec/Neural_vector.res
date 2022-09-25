@@ -9,10 +9,6 @@ type sampleData = {
   height: float,
 }
 
-type gender =
-  | Male
-  | Female
-
 let createState = (): state => {
   weight1: Js.Math.random(),
   weight2: Js.Math.random(),
@@ -27,18 +23,13 @@ let train = (state: state, sampleData: sampleData): state => {
   }
 }
 
-let _activateFunc = x => x
-
-let _convert = x =>
-  switch x {
-  | 0. => Male
-  | 1. => Female
-  }
+let _activateFunc = x => {
+  1. /. (1. +. Js.Math.exp(-.x))
+}
 
 let forward = (state: state, sampleData: sampleData): float => {
-  sampleData.height *. state.weight1 +.
-  sampleData.weight *. state.weight2 +.
-  state.bias->_activateFunc
+  (sampleData.height *. state.weight1 +. sampleData.weight *. state.weight2 +. state.bias)
+    ->_activateFunc
 }
 
 let state = createState()

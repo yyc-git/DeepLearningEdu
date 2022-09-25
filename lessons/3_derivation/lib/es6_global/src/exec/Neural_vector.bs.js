@@ -18,29 +18,11 @@ function train(state, sampleData) {
 }
 
 function _activateFunc(x) {
-  return x;
-}
-
-function _convert(x) {
-  if (x === 0) {
-    return /* Male */0;
-  }
-  if (x === 1) {
-    return /* Female */1;
-  }
-  throw {
-        RE_EXN_ID: "Match_failure",
-        _1: [
-          "Neural_vector.res",
-          33,
-          2
-        ],
-        Error: new Error()
-      };
+  return 1 / (1 + Math.exp(-x));
 }
 
 function forward(state, sampleData) {
-  return sampleData.height * state.weight1 + sampleData.weight * state.weight2 + state.bias;
+  return _activateFunc(sampleData.height * state.weight1 + sampleData.weight * state.weight2 + state.bias);
 }
 
 var state = createState(undefined);
@@ -58,7 +40,6 @@ export {
   createState ,
   train ,
   _activateFunc ,
-  _convert ,
   forward ,
   state ,
   

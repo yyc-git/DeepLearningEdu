@@ -1,55 +1,45 @@
 
 
+import * as Vector$Gender_analyze from "./Vector.bs.js";
+import * as ArraySt$Gender_analyze from "./ArraySt.bs.js";
 
-function createState(param) {
+function createState(inputCount) {
   return {
-          weight1: Math.random(),
-          weight2: Math.random(),
-          bias: Math.random()
+          wVector: Vector$Gender_analyze.create(ArraySt$Gender_analyze.map(ArraySt$Gender_analyze.range(0, (inputCount + 1 | 0) - 1 | 0), (function (param) {
+                      return Math.random();
+                    })))
         };
 }
 
 function train(state, sampleData) {
   return {
-          weight1: 1.0,
-          weight2: -2.0,
-          bias: -49.0
+          wVector: Vector$Gender_analyze.create([
+                1.0,
+                -2.0,
+                -49.0
+              ])
         };
 }
 
 function _activateFunc(x) {
-  return x;
-}
-
-function _convert(x) {
-  if (x === 0) {
-    return /* Male */0;
-  }
-  if (x === 1) {
-    return /* Female */1;
-  }
-  throw {
-        RE_EXN_ID: "Match_failure",
-        _1: [
-          "Neural_vector_answer.res",
-          33,
-          2
-        ],
-        Error: new Error()
-      };
+  return 1 / (1 + Math.exp(-x));
 }
 
 function forward(state, sampleData) {
-  return sampleData.height * state.weight1 + sampleData.weight * state.weight2 + state.bias;
+  var inputVector = Vector$Gender_analyze.create([
+        sampleData.height,
+        sampleData.weight,
+        1.0
+      ]);
+  return _activateFunc(Vector$Gender_analyze.dot(state.wVector, inputVector));
 }
 
-var state = createState(undefined);
+var state = createState(2);
 
-console.log(forward({
-          weight1: 1.0,
-          weight2: -2.0,
-          bias: -49.0
-        }, {
+console.log(forward(train(state, {
+              weight: 50,
+              height: 150
+            }), {
           weight: 50,
           height: 150
         }));
@@ -58,7 +48,6 @@ export {
   createState ,
   train ,
   _activateFunc ,
-  _convert ,
   forward ,
   state ,
   

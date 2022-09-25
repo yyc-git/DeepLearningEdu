@@ -68,11 +68,12 @@ function createState(param) {
 }
 
 function _activateFunc(x) {
-  return x;
+  return 1 / (1 + Math.exp(-x));
 }
 
-function _deriv_linear(x) {
-  return 1;
+function _deriv_Sigmoid(x) {
+  var fx = _activateFunc(x);
+  return fx * (1 - fx);
 }
 
 function forward$1(state, feature) {
@@ -133,15 +134,22 @@ function train(state, features, labels) {
                         var x2 = feature.height;
                         var match = forward$1(state, feature);
                         var match$1 = match[1];
+                        var match$2 = match[0];
+                        var net5 = match$2[2];
+                        var net4 = match$2[1];
+                        var net3 = match$2[0];
                         var d_E_d_y5 = -2 / n * (label - match$1[2]);
-                        var d_y5_d_w35 = match$1[0] * 1;
-                        var d_y5_d_w45 = match$1[1] * 1;
-                        var d_y5_d_y3 = state.weight35 * 1;
-                        var d_y5_d_y4 = state.weight45 * 1;
-                        var d_y3_d_w13 = x1 * 1;
-                        var d_y3_d_w23 = x2 * 1;
-                        var d_y4_d_w14 = x1 * 1;
-                        var d_y4_d_w24 = x2 * 1;
+                        var d_y5_d_w35 = match$1[0] * _deriv_Sigmoid(net5);
+                        var d_y5_d_w45 = match$1[1] * _deriv_Sigmoid(net5);
+                        var d_y5_d_b5 = _deriv_Sigmoid(net5);
+                        var d_y5_d_y3 = state.weight35 * _deriv_Sigmoid(net5);
+                        var d_y5_d_y4 = state.weight45 * _deriv_Sigmoid(net5);
+                        var d_y3_d_w13 = x1 * _deriv_Sigmoid(net3);
+                        var d_y3_d_w23 = x2 * _deriv_Sigmoid(net3);
+                        var d_y3_d_b3 = _deriv_Sigmoid(net3);
+                        var d_y4_d_w14 = x1 * _deriv_Sigmoid(net4);
+                        var d_y4_d_w24 = x2 * _deriv_Sigmoid(net4);
+                        var d_y4_d_b4 = _deriv_Sigmoid(net4);
                         return {
                                 weight13: state.weight13 - 0.1 * d_E_d_y5 * d_y5_d_y3 * d_y3_d_w13,
                                 weight14: state.weight14 - 0.1 * d_E_d_y5 * d_y5_d_y4 * d_y4_d_w14,
@@ -149,9 +157,9 @@ function train(state, features, labels) {
                                 weight24: state.weight24 - 0.1 * d_E_d_y5 * d_y5_d_y4 * d_y4_d_w24,
                                 weight35: state.weight35 - 0.1 * d_E_d_y5 * d_y5_d_w35,
                                 weight45: state.weight45 - 0.1 * d_E_d_y5 * d_y5_d_w45,
-                                bias3: state.bias3 - 0.1 * d_E_d_y5 * d_y5_d_y3 * 1,
-                                bias4: state.bias4 - 0.1 * d_E_d_y5 * d_y5_d_y4 * 1,
-                                bias5: state.bias5 - 0.1 * d_E_d_y5 * 1
+                                bias3: state.bias3 - 0.1 * d_E_d_y5 * d_y5_d_y3 * d_y3_d_b3,
+                                bias4: state.bias4 - 0.1 * d_E_d_y5 * d_y5_d_y4 * d_y4_d_b4,
+                                bias5: state.bias5 - 0.1 * d_E_d_y5 * d_y5_d_b5
                               };
                       }), state);
                 if (epoch % 10 === 0) {
@@ -225,7 +233,7 @@ export {
   Neural_forward ,
   createState ,
   _activateFunc ,
-  _deriv_linear ,
+  _deriv_Sigmoid ,
   forward$1 as forward,
   _convertLabelToFloat ,
   _computeLoss ,

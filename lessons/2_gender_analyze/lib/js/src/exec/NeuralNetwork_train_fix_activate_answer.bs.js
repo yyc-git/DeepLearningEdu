@@ -2,6 +2,7 @@
 
 var Curry = require("rescript/lib/js/curry.js");
 var Belt_Array = require("rescript/lib/js/belt_Array.js");
+var Caml_array = require("rescript/lib/js/caml_array.js");
 var Neural_forward_answer$Gender_analyze = require("./Neural_forward_answer.bs.js");
 
 function length(prim) {
@@ -67,11 +68,12 @@ function createState(param) {
 }
 
 function _activateFunc(x) {
-  return x;
+  return 1 / (1 + Math.exp(-x));
 }
 
-function _deriv_linear(x) {
-  return 1;
+function _deriv_Sigmoid(x) {
+  var fx = _activateFunc(x);
+  return fx * (1 - fx);
 }
 
 function forward$1(state, feature) {
@@ -117,9 +119,61 @@ function _convertLabelToFloat(label) {
   }
 }
 
+function _computeLoss(labels, outputs) {
+  return reduceOneParami(labels, (function (result, label, i) {
+                return result + Math.pow(label - Caml_array.get(outputs, i), 2.0);
+              }), 0) / labels.length;
+}
+
 function train(state, features, labels) {
+  var n = features.length;
   return Belt_Array.reduceU(range(0, 999), state, (function (state, epoch) {
-                return state;
+                var state$1 = reduceOneParami(features, (function (state, feature, i) {
+                        var label = Caml_array.get(labels, i) ? 1 : 0;
+                        var x1 = feature.weight;
+                        var x2 = feature.height;
+                        var match = forward$1(state, feature);
+                        var match$1 = match[1];
+                        var match$2 = match[0];
+                        var net5 = match$2[2];
+                        var net4 = match$2[1];
+                        var net3 = match$2[0];
+                        var d_E_d_y5 = -2 / n * (label - match$1[2]);
+                        var d_y5_d_w35 = match$1[0] * _deriv_Sigmoid(net5);
+                        var d_y5_d_w45 = match$1[1] * _deriv_Sigmoid(net5);
+                        var d_y5_d_b5 = _deriv_Sigmoid(net5);
+                        var d_y5_d_y3 = state.weight35 * _deriv_Sigmoid(net5);
+                        var d_y5_d_y4 = state.weight45 * _deriv_Sigmoid(net5);
+                        var d_y3_d_w13 = x1 * _deriv_Sigmoid(net3);
+                        var d_y3_d_w23 = x2 * _deriv_Sigmoid(net3);
+                        var d_y3_d_b3 = _deriv_Sigmoid(net3);
+                        var d_y4_d_w14 = x1 * _deriv_Sigmoid(net4);
+                        var d_y4_d_w24 = x2 * _deriv_Sigmoid(net4);
+                        var d_y4_d_b4 = _deriv_Sigmoid(net4);
+                        return {
+                                weight13: state.weight13 - 0.1 * d_E_d_y5 * d_y5_d_y3 * d_y3_d_w13,
+                                weight14: state.weight14 - 0.1 * d_E_d_y5 * d_y5_d_y4 * d_y4_d_w14,
+                                weight23: state.weight14 - 0.1 * d_E_d_y5 * d_y5_d_y3 * d_y3_d_w23,
+                                weight24: state.weight24 - 0.1 * d_E_d_y5 * d_y5_d_y4 * d_y4_d_w24,
+                                weight35: state.weight35 - 0.1 * d_E_d_y5 * d_y5_d_w35,
+                                weight45: state.weight45 - 0.1 * d_E_d_y5 * d_y5_d_w45,
+                                bias3: state.bias3 - 0.1 * d_E_d_y5 * d_y5_d_y3 * d_y3_d_b3,
+                                bias4: state.bias4 - 0.1 * d_E_d_y5 * d_y5_d_y4 * d_y4_d_b4,
+                                bias5: state.bias5 - 0.1 * d_E_d_y5 * d_y5_d_b5
+                              };
+                      }), state);
+                if (epoch % 10 === 0) {
+                  console.log([
+                        "loss: ",
+                        _computeLoss(labels.map(_convertLabelToFloat), features.map(function (feature) {
+                                  var match = forward$1(state$1, feature);
+                                  return match[1][2];
+                                }))
+                      ]);
+                  return state$1;
+                } else {
+                  return state$1;
+                }
               }));
 }
 
@@ -178,9 +232,10 @@ exports.ArraySt = ArraySt;
 exports.Neural_forward = Neural_forward;
 exports.createState = createState;
 exports._activateFunc = _activateFunc;
-exports._deriv_linear = _deriv_linear;
+exports._deriv_Sigmoid = _deriv_Sigmoid;
 exports.forward = forward$1;
 exports._convertLabelToFloat = _convertLabelToFloat;
+exports._computeLoss = _computeLoss;
 exports.train = train;
 exports.inference = inference;
 exports.features = features;
