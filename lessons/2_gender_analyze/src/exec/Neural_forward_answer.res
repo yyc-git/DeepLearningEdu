@@ -36,9 +36,8 @@ let _convert = x =>
   }
 
 let forward = (state: state, sampleData: sampleData): float => {
-  sampleData.height *. state.weight1 +.
-  sampleData.weight *. state.weight2 +.
-  state.bias->_activateFunc
+  (sampleData.height *. state.weight1 +. sampleData.weight *. state.weight2 +. state.bias)
+    ->_activateFunc
 }
 
 let inference = (state: state, sampleData: sampleData): gender => {
