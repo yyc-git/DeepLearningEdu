@@ -1,7 +1,7 @@
 
 
-import * as Curry from "../../../../../../node_modules/rescript/lib/es6/curry.js";
-import * as Belt_Array from "../../../../../../node_modules/rescript/lib/es6/belt_Array.js";
+import * as Curry from "../../../../../../../node_modules/rescript/lib/es6/curry.js";
+import * as Belt_Array from "../../../../../../../node_modules/rescript/lib/es6/belt_Array.js";
 
 function length(prim) {
   return prim.length;

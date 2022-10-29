@@ -1,6 +1,6 @@
 
 
-import * as Caml_array from "../../../../../../node_modules/rescript/lib/es6/caml_array.js";
+import * as Caml_array from "../../../../../../../node_modules/rescript/lib/es6/caml_array.js";
 import * as ArraySt$Gender_analyze from "./ArraySt.bs.js";
 
 function create(arr) {
