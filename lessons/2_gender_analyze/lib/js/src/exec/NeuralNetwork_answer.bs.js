@@ -4,12 +4,12 @@ var Neural_forward_answer$Gender_analyze = require("./Neural_forward_answer.bs.j
 
 function createState(param) {
   return {
-          weight13: Math.random(),
-          weight14: Math.random(),
-          weight23: Math.random(),
-          weight24: Math.random(),
-          weight35: Math.random(),
-          weight45: Math.random(),
+          weight31: Math.random(),
+          weight41: Math.random(),
+          weight32: Math.random(),
+          weight42: Math.random(),
+          weight53: Math.random(),
+          weight54: Math.random(),
           bias3: Math.random(),
           bias4: Math.random(),
           bias5: Math.random()
@@ -38,18 +38,18 @@ function _convert(x) {
 
 function forward(state, sampleData) {
   var y3 = Neural_forward_answer$Gender_analyze.forward({
-        weight1: state.weight13,
-        weight2: state.weight23,
+        weight1: state.weight31,
+        weight2: state.weight32,
         bias: state.bias3
       }, sampleData);
   var y4 = Neural_forward_answer$Gender_analyze.forward({
-        weight1: state.weight14,
-        weight2: state.weight24,
+        weight1: state.weight41,
+        weight2: state.weight42,
         bias: state.bias4
       }, sampleData);
   return Neural_forward_answer$Gender_analyze.forward({
-              weight1: state.weight35,
-              weight2: state.weight45,
+              weight1: state.weight53,
+              weight2: state.weight54,
               bias: state.bias5
             }, {
               weight: y3,

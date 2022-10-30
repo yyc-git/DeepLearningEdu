@@ -3,12 +3,12 @@
 
 function createState(param) {
   return {
-          weight13: Math.random(),
-          weight14: Math.random(),
-          weight23: Math.random(),
-          weight24: Math.random(),
-          weight35: Math.random(),
-          weight45: Math.random(),
+          weight31: Math.random(),
+          weight41: Math.random(),
+          weight32: Math.random(),
+          weight42: Math.random(),
+          weight53: Math.random(),
+          weight54: Math.random(),
           bias3: Math.random(),
           bias4: Math.random(),
           bias5: Math.random()

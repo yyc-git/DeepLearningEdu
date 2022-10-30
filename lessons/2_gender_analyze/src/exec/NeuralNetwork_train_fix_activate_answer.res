@@ -1,10 +1,10 @@
 type state = {
-  weight13: float,
-  weight14: float,
-  weight23: float,
-  weight24: float,
-  weight35: float,
-  weight45: float,
+  weight31: float,
+  weight41: float,
+  weight32: float,
+  weight42: float,
+  weight53: float,
+  weight54: float,
   bias3: float,
   bias4: float,
   bias5: float,
@@ -54,12 +54,12 @@ module Neural_forward = {
 }
 
 let createState = (): state => {
-  weight13: Js.Math.random(),
-  weight14: Js.Math.random(),
-  weight23: Js.Math.random(),
-  weight24: Js.Math.random(),
-  weight35: Js.Math.random(),
-  weight45: Js.Math.random(),
+  weight31: Js.Math.random(),
+  weight41: Js.Math.random(),
+  weight32: Js.Math.random(),
+  weight42: Js.Math.random(),
+  weight53: Js.Math.random(),
+  weight54: Js.Math.random(),
   bias3: Js.Math.random(),
   bias4: Js.Math.random(),
   bias5: Js.Math.random(),
@@ -79,8 +79,8 @@ let forward = (state: state, feature: feature) => {
   let (net3, y3) = Neural_forward.forward(
     (
       {
-        weight1: state.weight13,
-        weight2: state.weight23,
+        weight1: state.weight31,
+        weight2: state.weight32,
         bias: state.bias3,
       }: Neural_forward_answer.state
     ),
@@ -90,8 +90,8 @@ let forward = (state: state, feature: feature) => {
   let (net4, y4) = Neural_forward.forward(
     (
       {
-        weight1: state.weight14,
-        weight2: state.weight24,
+        weight1: state.weight41,
+        weight2: state.weight42,
         bias: state.bias4,
       }: Neural_forward_answer.state
     ),
@@ -101,8 +101,8 @@ let forward = (state: state, feature: feature) => {
   let (net5, y5) = Neural_forward.forward(
     (
       {
-        weight1: state.weight35,
-        weight2: state.weight45,
+        weight1: state.weight53,
+        weight2: state.weight54,
         bias: state.bias5,
       }: Neural_forward_answer.state
     ),
@@ -147,35 +147,35 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
       let d_E_d_y5 = -2. /. n *. (label -. y5)
 
       // Neuron o5
-      let d_y5_d_w35 = y3 *. _deriv_Sigmoid(net5)
-      let d_y5_d_w45 = y4 *. _deriv_Sigmoid(net5)
+      let d_y5_d_w53 = y3 *. _deriv_Sigmoid(net5)
+      let d_y5_d_w54 = y4 *. _deriv_Sigmoid(net5)
       let d_y5_d_b5 = _deriv_Sigmoid(net5)
 
-      let d_y5_d_y3 = state.weight35 *. _deriv_Sigmoid(net5)
-      let d_y5_d_y4 = state.weight45 *. _deriv_Sigmoid(net5)
+      let d_y5_d_y3 = state.weight53 *. _deriv_Sigmoid(net5)
+      let d_y5_d_y4 = state.weight54 *. _deriv_Sigmoid(net5)
 
       // Neuron o3
-      let d_y3_d_w13 = x1 *. _deriv_Sigmoid(net3)
-      let d_y3_d_w23 = x2 *. _deriv_Sigmoid(net3)
+      let d_y3_d_w31 = x1 *. _deriv_Sigmoid(net3)
+      let d_y3_d_w32 = x2 *. _deriv_Sigmoid(net3)
       let d_y3_d_b3 = _deriv_Sigmoid(net3)
 
       // Neuron o4
-      let d_y4_d_w14 = x1 *. _deriv_Sigmoid(net4)
-      let d_y4_d_w24 = x2 *. _deriv_Sigmoid(net4)
+      let d_y4_d_w41 = x1 *. _deriv_Sigmoid(net4)
+      let d_y4_d_w42 = x2 *. _deriv_Sigmoid(net4)
       let d_y4_d_b4 = _deriv_Sigmoid(net4)
 
       // Update weights and biases
 
-      // Js.log(learnRate *. d_E_d_y5 *. d_y5_d_y3 *. d_y3_d_w13,)
+      // Js.log(learnRate *. d_E_d_y5 *. d_y5_d_y3 *. d_y3_d_w31,)
       // Js.log(d_y5_d_y3)
 
       {
-        weight13: state.weight13 -. learnRate *. d_E_d_y5 *. d_y5_d_y3 *. d_y3_d_w13,
-        weight14: state.weight14 -. learnRate *. d_E_d_y5 *. d_y5_d_y4 *. d_y4_d_w14,
-        weight23: state.weight14 -. learnRate *. d_E_d_y5 *. d_y5_d_y3 *. d_y3_d_w23,
-        weight24: state.weight24 -. learnRate *. d_E_d_y5 *. d_y5_d_y4 *. d_y4_d_w24,
-        weight35: state.weight35 -. learnRate *. d_E_d_y5 *. d_y5_d_w35,
-        weight45: state.weight45 -. learnRate *. d_E_d_y5 *. d_y5_d_w45,
+        weight31: state.weight31 -. learnRate *. d_E_d_y5 *. d_y5_d_y3 *. d_y3_d_w31,
+        weight41: state.weight41 -. learnRate *. d_E_d_y5 *. d_y5_d_y4 *. d_y4_d_w41,
+        weight32: state.weight41 -. learnRate *. d_E_d_y5 *. d_y5_d_y3 *. d_y3_d_w32,
+        weight42: state.weight42 -. learnRate *. d_E_d_y5 *. d_y5_d_y4 *. d_y4_d_w42,
+        weight53: state.weight53 -. learnRate *. d_E_d_y5 *. d_y5_d_w53,
+        weight54: state.weight54 -. learnRate *. d_E_d_y5 *. d_y5_d_w54,
         bias3: state.bias3 -. learnRate *. d_E_d_y5 *. d_y5_d_y3 *. d_y3_d_b3,
         bias4: state.bias4 -. learnRate *. d_E_d_y5 *. d_y5_d_y4 *. d_y4_d_b4,
         bias5: state.bias5 -. learnRate *. d_E_d_y5 *. d_y5_d_b5,

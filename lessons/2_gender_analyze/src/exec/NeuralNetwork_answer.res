@@ -1,10 +1,10 @@
 type state = {
-  weight13: float,
-  weight14: float,
-  weight23: float,
-  weight24: float,
-  weight35: float,
-  weight45: float,
+  weight31: float,
+  weight41: float,
+  weight32: float,
+  weight42: float,
+  weight53: float,
+  weight54: float,
   bias3: float,
   bias4: float,
   bias5: float,
@@ -21,12 +21,12 @@ type gender =
   | InValid
 
 let createState = (): state => {
-  weight13: Js.Math.random(),
-  weight14: Js.Math.random(),
-  weight23: Js.Math.random(),
-  weight24: Js.Math.random(),
-  weight35: Js.Math.random(),
-  weight45: Js.Math.random(),
+  weight31: Js.Math.random(),
+  weight41: Js.Math.random(),
+  weight32: Js.Math.random(),
+  weight42: Js.Math.random(),
+  weight53: Js.Math.random(),
+  weight54: Js.Math.random(),
   bias3: Js.Math.random(),
   bias4: Js.Math.random(),
   bias5: Js.Math.random(),
@@ -51,8 +51,8 @@ let forward = (state: state, sampleData: sampleData): float => {
   let y3 = Neural_forward_answer.forward(
     (
       {
-        weight1: state.weight13,
-        weight2: state.weight23,
+        weight1: state.weight31,
+        weight2: state.weight32,
         bias: state.bias3,
       }: Neural_forward_answer.state
     ),
@@ -62,8 +62,8 @@ let forward = (state: state, sampleData: sampleData): float => {
   let y4 = Neural_forward_answer.forward(
     (
       {
-        weight1: state.weight14,
-        weight2: state.weight24,
+        weight1: state.weight41,
+        weight2: state.weight42,
         bias: state.bias4,
       }: Neural_forward_answer.state
     ),
@@ -73,8 +73,8 @@ let forward = (state: state, sampleData: sampleData): float => {
   Neural_forward_answer.forward(
     (
       {
-        weight1: state.weight35,
-        weight2: state.weight45,
+        weight1: state.weight53,
+        weight2: state.weight54,
         bias: state.bias5,
       }: Neural_forward_answer.state
     ),

@@ -55,12 +55,12 @@ var Neural_forward = {
 
 function createState(param) {
   return {
-          weight13: Math.random(),
-          weight14: Math.random(),
-          weight23: Math.random(),
-          weight24: Math.random(),
-          weight35: Math.random(),
-          weight45: Math.random(),
+          weight31: Math.random(),
+          weight41: Math.random(),
+          weight32: Math.random(),
+          weight42: Math.random(),
+          weight53: Math.random(),
+          weight54: Math.random(),
           bias3: Math.random(),
           bias4: Math.random(),
           bias5: Math.random()
@@ -77,20 +77,20 @@ function _deriv_linear(x) {
 
 function forward$1(state, feature) {
   var match = forward({
-        weight1: state.weight13,
-        weight2: state.weight23,
+        weight1: state.weight31,
+        weight2: state.weight32,
         bias: state.bias3
       }, feature);
   var y3 = match[1];
   var match$1 = forward({
-        weight1: state.weight14,
-        weight2: state.weight24,
+        weight1: state.weight41,
+        weight2: state.weight42,
         bias: state.bias4
       }, feature);
   var y4 = match$1[1];
   var match$2 = forward({
-        weight1: state.weight35,
-        weight2: state.weight45,
+        weight1: state.weight53,
+        weight2: state.weight54,
         bias: state.bias5
       }, {
         weight: y3,
@@ -134,21 +134,21 @@ function train(state, features, labels) {
                         var match = forward$1(state, feature);
                         var match$1 = match[1];
                         var d_E_d_y5 = -2 / n * (label - match$1[2]);
-                        var d_y5_d_w35 = match$1[0] * 1;
-                        var d_y5_d_w45 = match$1[1] * 1;
-                        var d_y5_d_y3 = state.weight35 * 1;
-                        var d_y5_d_y4 = state.weight45 * 1;
-                        var d_y3_d_w13 = x1 * 1;
-                        var d_y3_d_w23 = x2 * 1;
-                        var d_y4_d_w14 = x1 * 1;
-                        var d_y4_d_w24 = x2 * 1;
+                        var d_y5_d_w53 = match$1[0] * 1;
+                        var d_y5_d_w54 = match$1[1] * 1;
+                        var d_y5_d_y3 = state.weight53 * 1;
+                        var d_y5_d_y4 = state.weight54 * 1;
+                        var d_y3_d_w31 = x1 * 1;
+                        var d_y3_d_w32 = x2 * 1;
+                        var d_y4_d_w41 = x1 * 1;
+                        var d_y4_d_w42 = x2 * 1;
                         return {
-                                weight13: state.weight13 - 0.1 * d_E_d_y5 * d_y5_d_y3 * d_y3_d_w13,
-                                weight14: state.weight14 - 0.1 * d_E_d_y5 * d_y5_d_y4 * d_y4_d_w14,
-                                weight23: state.weight14 - 0.1 * d_E_d_y5 * d_y5_d_y3 * d_y3_d_w23,
-                                weight24: state.weight24 - 0.1 * d_E_d_y5 * d_y5_d_y4 * d_y4_d_w24,
-                                weight35: state.weight35 - 0.1 * d_E_d_y5 * d_y5_d_w35,
-                                weight45: state.weight45 - 0.1 * d_E_d_y5 * d_y5_d_w45,
+                                weight31: state.weight31 - 0.1 * d_E_d_y5 * d_y5_d_y3 * d_y3_d_w31,
+                                weight41: state.weight41 - 0.1 * d_E_d_y5 * d_y5_d_y4 * d_y4_d_w41,
+                                weight32: state.weight41 - 0.1 * d_E_d_y5 * d_y5_d_y3 * d_y3_d_w32,
+                                weight42: state.weight42 - 0.1 * d_E_d_y5 * d_y5_d_y4 * d_y4_d_w42,
+                                weight53: state.weight53 - 0.1 * d_E_d_y5 * d_y5_d_w53,
+                                weight54: state.weight54 - 0.1 * d_E_d_y5 * d_y5_d_w54,
                                 bias3: state.bias3 - 0.1 * d_E_d_y5 * d_y5_d_y3 * 1,
                                 bias4: state.bias4 - 0.1 * d_E_d_y5 * d_y5_d_y4 * 1,
                                 bias5: state.bias5 - 0.1 * d_E_d_y5 * 1
