@@ -273,10 +273,11 @@ var Matrix = {
 };
 
 function _createWMatrix(getValueFunc, firstLayerNodeCount, secondLayerNodeCount) {
-  var arr = range(0, Math.imul(secondLayerNodeCount, firstLayerNodeCount) - 1 | 0);
+  var col = firstLayerNodeCount + 1 | 0;
+  var arr = range(0, Math.imul(secondLayerNodeCount, col) - 1 | 0);
   return [
           secondLayerNodeCount,
-          firstLayerNodeCount,
+          col,
           arr.map(function (param) {
                 return Curry._1(getValueFunc, undefined);
               })
@@ -287,10 +288,10 @@ function createState(layer1NodeCount, layer2NodeCount, layer3NodeCount) {
   return {
           wMatrixBetweenLayer1Layer2: _createWMatrix((function (param) {
                   return 0.1;
-                }), layer1NodeCount + 1 | 0, layer2NodeCount),
+                }), layer1NodeCount, layer2NodeCount),
           wMatrixBetweenLayer2Layer3: _createWMatrix((function (param) {
                   return 0.1;
-                }), layer2NodeCount + 1 | 0, layer3NodeCount)
+                }), layer2NodeCount, layer3NodeCount)
         };
 }
 

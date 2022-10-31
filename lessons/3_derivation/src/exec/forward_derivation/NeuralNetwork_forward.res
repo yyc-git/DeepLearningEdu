@@ -1,29 +1,29 @@
-type state = {
-TODO
-}
+// type state = {
+// TODO
+// }
 
-type feature = {
-  weight: float,
-  height: float,
-}
+// type feature = {
+//   weight: float,
+//   height: float,
+// }
 
-let createState = (TODO): state => {
-TODO
-}
+// let createState = (TODO): state => {
+// TODO
+// }
 
-let _activateFunc = x => {
-  1. /. (1. +. Js.Math.exp(-.x))
-}
+// let _activateFunc = x => {
+//   1. /. (1. +. Js.Math.exp(-.x))
+// }
 
-let forward = (state: state, feature: feature) => {
-  TODO
-}
+// let forward = (state: state, feature: feature) => {
+//   TODO
+// }
 
-let state = createState(TODO)
+// let state = createState(TODO)
 
-let feature = {
-  weight: 50.,
-  height: 150.,
-}
+// let feature = {
+//   weight: 50.,
+//   height: 150.,
+// }
 
-forward(state, feature)->Js.log
+// forward(state, feature)->Js.log

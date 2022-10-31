@@ -204,18 +204,15 @@ type feature = {
 }
 
 let _createWMatrix = (getValueFunc, firstLayerNodeCount, secondLayerNodeCount) => {
-  Matrix.create(
-    secondLayerNodeCount,
-    firstLayerNodeCount,
-    ArraySt.range(0, secondLayerNodeCount * firstLayerNodeCount - 1)->ArraySt.map(_ =>
-      getValueFunc()
-    ),
-  )
+  let row = secondLayerNodeCount
+  let col = firstLayerNodeCount + 1
+
+  Matrix.create(row, col, ArraySt.range(0, row * col - 1)->ArraySt.map(_ => getValueFunc()))
 }
 
 let createState = (layer1NodeCount, layer2NodeCount, layer3NodeCount): state => {
-  wMatrixBetweenLayer1Layer2: _createWMatrix(() => 0.1, layer1NodeCount + 1, layer2NodeCount),
-  wMatrixBetweenLayer2Layer3: _createWMatrix(() => 0.1, layer2NodeCount + 1, layer3NodeCount),
+  wMatrixBetweenLayer1Layer2: _createWMatrix(() => 0.1, layer1NodeCount, layer2NodeCount),
+  wMatrixBetweenLayer2Layer3: _createWMatrix(() => 0.1, layer2NodeCount, layer3NodeCount),
 }
 
 let _activateFunc = x => {
@@ -228,12 +225,11 @@ let forward = (state: state, feature: feature) => {
   let layer2OutputVector =
     Vector.transformMatrix(state.wMatrixBetweenLayer1Layer2, inputVector)->Vector.map(_activateFunc)
 
-  let layer3OutputVector =
-    Vector.transformMatrix(
-      state.wMatrixBetweenLayer2Layer3,
-      /*! 注意：此处push 1.0 */
-      layer2OutputVector->Vector.push(1.0),
-    )->Vector.map(_activateFunc)
+  let layer3OutputVector = Vector.transformMatrix(
+    state.wMatrixBetweenLayer2Layer3,
+    /* ! 注意：此处push 1.0 */
+    layer2OutputVector->Vector.push(1.0),
+  )->Vector.map(_activateFunc)
 
   (layer2OutputVector, layer3OutputVector)
 }
