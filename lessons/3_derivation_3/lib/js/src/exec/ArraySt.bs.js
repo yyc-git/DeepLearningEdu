@@ -7,6 +7,10 @@ function length(prim) {
   return prim.length;
 }
 
+function sliceFrom(arr, index) {
+  return arr.slice(index);
+}
+
 function reduceOneParam(arr, func, param) {
   return Belt_Array.reduceU(arr, param, func);
 }
@@ -51,6 +55,7 @@ function forEachi(arr, func) {
 }
 
 exports.length = length;
+exports.sliceFrom = sliceFrom;
 exports.reduceOneParam = reduceOneParam;
 exports.reduceOneParami = reduceOneParami;
 exports.range = range;

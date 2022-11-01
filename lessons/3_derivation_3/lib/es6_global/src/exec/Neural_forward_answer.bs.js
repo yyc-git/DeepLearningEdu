@@ -18,16 +18,38 @@ function train(state, sampleData) {
 }
 
 function _activateFunc(x) {
-  return 1 / (1 + Math.exp(-x));
+  return x;
+}
+
+function _convert(x) {
+  if (x === 0) {
+    return /* Male */0;
+  }
+  if (x === 1) {
+    return /* Female */1;
+  }
+  throw {
+        RE_EXN_ID: "Match_failure",
+        _1: [
+          "Neural_forward_answer.res",
+          33,
+          2
+        ],
+        Error: new Error()
+      };
 }
 
 function forward(state, sampleData) {
-  return _activateFunc(sampleData.height * state.weight1 + sampleData.weight * state.weight2 + state.bias);
+  return sampleData.height * state.weight1 + sampleData.weight * state.weight2 + state.bias;
+}
+
+function inference(state, sampleData) {
+  return _convert(forward(state, sampleData));
 }
 
 var state = createState(undefined);
 
-console.log(forward({
+var gender = _convert(forward({
           weight1: 1.0,
           weight2: -2.0,
           bias: -49.0
@@ -40,8 +62,11 @@ export {
   createState ,
   train ,
   _activateFunc ,
+  _convert ,
   forward ,
+  inference ,
   state ,
+  gender ,
   
 }
 /* state Not a pure module */

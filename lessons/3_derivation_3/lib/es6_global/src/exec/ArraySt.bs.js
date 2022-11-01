@@ -1,10 +1,14 @@
 
 
-import * as Curry from "../../../../../../../node_modules/rescript/lib/es6/curry.js";
-import * as Belt_Array from "../../../../../../../node_modules/rescript/lib/es6/belt_Array.js";
+import * as Curry from "../../../../../../node_modules/rescript/lib/es6/curry.js";
+import * as Belt_Array from "../../../../../../node_modules/rescript/lib/es6/belt_Array.js";
 
 function length(prim) {
   return prim.length;
+}
+
+function sliceFrom(arr, index) {
+  return arr.slice(index);
 }
 
 function reduceOneParam(arr, func, param) {
@@ -52,6 +56,7 @@ function forEachi(arr, func) {
 
 export {
   length ,
+  sliceFrom ,
   reduceOneParam ,
   reduceOneParami ,
   range ,
