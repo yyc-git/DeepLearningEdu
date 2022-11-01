@@ -20,43 +20,34 @@ module Neural_forward_answer = {
     bias: Js.Math.random(),
   }
 
-  let train = (state: state, sampleData: sampleData): state => {
-    {
-      weight1: 1.0,
-      weight2: -2.0,
-      bias: -49.0,
-    }
-  }
+  // let train = (state: state, sampleData: sampleData): state => {
+  //   {
+  //     weight1: 1.0,
+  //     weight2: -2.0,
+  //     bias: -49.0,
+  //   }
+  // }
 
-  let _activateFunc = x => x
+  // let _activateFunc = x => x
+let _activateFunc = x => {
+  1. /. (1. +. Js.Math.exp(-.x))
+}
 
-  let _convert = x =>
-    switch x {
-    | 0. => Male
-    | 1. => Female
-    }
+
+  // let _convert = x =>
+  //   switch x {
+  //   | 0. => Male
+  //   | 1. => Female
+  //   }
 
   let forward = (state: state, sampleData: sampleData): float => {
     (sampleData.height *. state.weight1 +. sampleData.weight *. state.weight2 +. state.bias)
       ->_activateFunc
   }
 
-  let inference = (state: state, sampleData: sampleData): gender => {
-    forward(state, sampleData)->_convert
-  }
-
-  let state = createState()
-
-  let gender =
-    state
-    ->train({
-      weight: 50.,
-      height: 150.,
-    })
-    ->inference({
-      weight: 50.,
-      height: 150.,
-    })
+  // let inference = (state: state, sampleData: sampleData): gender => {
+  //   forward(state, sampleData)->_convert
+  // }
 }
 
 type state = {
@@ -212,6 +203,7 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
 
   let learnRate = 0.1
   let epochs = 1000
+  // let epochs = 1
 
   let n = features->ArraySt.length->Obj.magic
 
@@ -222,6 +214,8 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
       let x2 = feature.height
 
       let ((net3, net4, net5), (y3, y4, y5)) = forward(state, feature)
+
+      // Js.log(((net3, net4, net5), (y3, y4, y5)))
 
       let d_E_d_y5 = -2. /. n *. (label -. y5)
       // let d_E_d_y5 = -2.  *. (label -. y5)
@@ -245,6 +239,18 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
       let d_y4_d_b4 = _deriv_Sigmoid(net4)
 
       // Update weights and biases
+
+//       Js.log((
+// d_E_d_y5 *. d_y5_d_w53,
+// d_E_d_y5 *. d_y5_d_w54,
+// d_E_d_y5 *. d_y5_d_b5
+//       ))
+
+
+//       Js.log((
+// d_E_d_y5 *. d_y5_d_y3 *. d_y3_d_w31,
+// d_E_d_y5 *. d_y5_d_y3 *. d_y3_d_w32
+//       ))
 
       {
         weight31: state.weight31 -. learnRate *. d_E_d_y5 *. d_y5_d_y3 *. d_y3_d_w31,
@@ -310,6 +316,7 @@ let features = [
 ]
 
 let labels = [Female, Female, Male, Male]
+// let labels = [Female]
 
 // let _mean = values => {
 //   values->ArraySt.reduceOneParam((. sum, value) => {
@@ -333,7 +340,7 @@ let labels = [Female, Female, Male, Male]
 
 let state = state->train(features, labels)
 
-Js.log(state)
+// Js.log(state)
 
 // let featuresForInference = [
 //   {

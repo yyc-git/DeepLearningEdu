@@ -101,7 +101,6 @@ let backward = (
     _deriv_Sigmoid(layer2NetValue)
   })
 
-  // (layer2Delta, layer3Delta)
 
   let layer2Gradient = Matrix.multiply(
     Matrix.create(Vector.length(layer2Delta), 1, layer2Delta),
@@ -115,6 +114,11 @@ let backward = (
     Matrix.create(Vector.length(layer3Delta), 1, layer3Delta),
     Matrix.create(1, Vector.length(layer2OutputVector), layer2OutputVector),
   )
+
+
+  // Js.log((layer2Delta, layer3Delta))
+  // Js.log(layer3Gradient)
+  // Js.log(layer2Gradient)
 
   // ((layer2Delta, layer2Gradient), (layer3Delta, layer3Gradient))
   (layer2Gradient, layer3Gradient)
@@ -143,6 +147,7 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
 
   let learnRate = 0.1
   let epochs = 1000
+  // let epochs = 1
 
   let n = features->ArraySt.length->Obj.magic
 
@@ -151,6 +156,8 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
       let label = labels[i]->_convertLabelToFloat
 
       let inputVector = _createInputVector(feature)
+
+      // Js.log(forward(inputVector, state))
 
       let (layer2Gradient, layer3Gradient) =
         forward(inputVector, state)->backward(n, label, inputVector, state)
@@ -215,7 +222,8 @@ let features = [
 ]
 
 let labels = [Female, Female, Male, Male]
+// let labels = [Female]
 
 let state = state->train(features, labels)
 
-Js.log(state)
+// Js.log(state)

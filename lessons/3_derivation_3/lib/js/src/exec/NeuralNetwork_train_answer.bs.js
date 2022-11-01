@@ -152,8 +152,6 @@ var labels = [
 
 var state$1 = train(state, features, labels);
 
-console.log(state$1);
-
 exports._createWMatrix = _createWMatrix;
 exports.createState = createState;
 exports._activateFunc = _activateFunc;

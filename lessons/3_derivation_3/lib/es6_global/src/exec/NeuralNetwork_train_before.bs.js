@@ -12,64 +12,18 @@ function createState(param) {
         };
 }
 
-function train(state, sampleData) {
-  return {
-          weight1: 1.0,
-          weight2: -2.0,
-          bias: -49.0
-        };
-}
-
 function _activateFunc(x) {
-  return x;
-}
-
-function _convert(x) {
-  if (x === 0) {
-    return /* Male */0;
-  }
-  if (x === 1) {
-    return /* Female */1;
-  }
-  throw {
-        RE_EXN_ID: "Match_failure",
-        _1: [
-          "NeuralNetwork_train_before.res",
-          34,
-          4
-        ],
-        Error: new Error()
-      };
+  return 1 / (1 + Math.exp(-x));
 }
 
 function forward(state, sampleData) {
-  return sampleData.height * state.weight1 + sampleData.weight * state.weight2 + state.bias;
+  return _activateFunc(sampleData.height * state.weight1 + sampleData.weight * state.weight2 + state.bias);
 }
-
-function inference(state, sampleData) {
-  return _convert(forward(state, sampleData));
-}
-
-var state = createState(undefined);
-
-var gender = _convert(forward({
-          weight1: 1.0,
-          weight2: -2.0,
-          bias: -49.0
-        }, {
-          weight: 50,
-          height: 150
-        }));
 
 var Neural_forward_answer = {
   createState: createState,
-  train: train,
   _activateFunc: _activateFunc,
-  _convert: _convert,
-  forward: forward,
-  inference: inference,
-  state: state,
-  gender: gender
+  forward: forward
 };
 
 function length(prim) {
@@ -112,7 +66,7 @@ function forward$1(state, feature) {
   var net = feature.height * state.weight1 + feature.weight * state.weight2 + state.bias;
   return [
           net,
-          net
+          _activateFunc(net)
         ];
 }
 
@@ -192,7 +146,7 @@ function _computeLoss(labels, outputs) {
               }), 0) / labels.length;
 }
 
-function train$1(state, features, labels) {
+function train(state, features, labels) {
   var n = features.length;
   return Belt_Array.reduceU(range(0, 999), state, (function (state, epoch) {
                 var state$1 = reduceOneParami(features, (function (state, feature, i) {
@@ -270,7 +224,7 @@ var labels = [
   /* Male */0
 ];
 
-var state$1 = train$1({
+var state = train({
       weight31: 0.1,
       weight41: 0.1,
       weight32: 0.1,
@@ -282,8 +236,6 @@ var state$1 = train$1({
       bias5: 0.1
     }, features, labels);
 
-console.log(state$1);
-
 export {
   Neural_forward_answer ,
   ArraySt ,
@@ -294,10 +246,10 @@ export {
   forward$2 as forward,
   _convertLabelToFloat ,
   _computeLoss ,
-  train$1 as train,
+  train ,
   features ,
   labels ,
-  state$1 as state,
+  state ,
   
 }
 /* state Not a pure module */
