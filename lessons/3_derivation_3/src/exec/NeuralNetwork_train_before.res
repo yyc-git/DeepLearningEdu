@@ -29,10 +29,9 @@ module Neural_forward_answer = {
   // }
 
   // let _activateFunc = x => x
-let _activateFunc = x => {
-  1. /. (1. +. Js.Math.exp(-.x))
-}
-
+  let _activateFunc = x => {
+    1. /. (1. +. Js.Math.exp(-.x))
+  }
 
   // let _convert = x =>
   //   switch x {
@@ -198,12 +197,8 @@ let _computeLoss = (labels, outputs) => {
 }
 
 let train = (state: state, features: array<feature>, labels: array<label>): state => {
-  // let learnRate = 0.001
-  // let epochs = 100000
-
   let learnRate = 0.1
   let epochs = 1000
-  // let epochs = 1
 
   let n = features->ArraySt.length->Obj.magic
 
@@ -215,10 +210,7 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
 
       let ((net3, net4, net5), (y3, y4, y5)) = forward(state, feature)
 
-      // Js.log(((net3, net4, net5), (y3, y4, y5)))
-
       let d_E_d_y5 = -2. /. n *. (label -. y5)
-      // let d_E_d_y5 = -2.  *. (label -. y5)
 
       // Neuron o5
       let d_y5_d_w53 = y3 *. _deriv_Sigmoid(net5)
@@ -239,18 +231,6 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
       let d_y4_d_b4 = _deriv_Sigmoid(net4)
 
       // Update weights and biases
-
-//       Js.log((
-// d_E_d_y5 *. d_y5_d_w53,
-// d_E_d_y5 *. d_y5_d_w54,
-// d_E_d_y5 *. d_y5_d_b5
-//       ))
-
-
-//       Js.log((
-// d_E_d_y5 *. d_y5_d_y3 *. d_y3_d_w31,
-// d_E_d_y5 *. d_y5_d_y3 *. d_y3_d_w32
-//       ))
 
       {
         weight31: state.weight31 -. learnRate *. d_E_d_y5 *. d_y5_d_y3 *. d_y3_d_w31,
@@ -286,14 +266,6 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
   }, state)
 }
 
-// let inference = (state: state, feature: feature) => {
-//   // Js.log(forward(state, feature))
-
-//   let (_, (_, _, y5)) = forward(state, feature)
-
-//   y5
-// }
-
 let state = createState()
 
 let features = [
@@ -316,43 +288,5 @@ let features = [
 ]
 
 let labels = [Female, Female, Male, Male]
-// let labels = [Female]
-
-// let _mean = values => {
-//   values->ArraySt.reduceOneParam((. sum, value) => {
-//     sum +. value
-//   }, 0.) /. ArraySt.length(values)->Obj.magic
-// }
-
-// let _zeroMean = features => {
-//   // let weightMean = features->ArraySt.map(feature => feature.weight)->_mean
-//   // let heightMean = features->ArraySt.map(feature => feature.height)->_mean
-//   let weightMean = features->ArraySt.map(feature => feature.weight)->_mean->Js.Math.floor->Obj.magic
-//   let heightMean = features->ArraySt.map(feature => feature.height)->_mean->Js.Math.floor->Obj.magic
-
-//   features->ArraySt.map(feature => {
-//     weight: feature.weight -. weightMean,
-//     height: feature.height -. heightMean,
-//   })
-// }
-
-// let features = features->_zeroMean
 
 let state = state->train(features, labels)
-
-// Js.log(state)
-
-// let featuresForInference = [
-//   {
-//     weight: 89.,
-//     height: 190.,
-//   },
-//   {
-//     weight: 60.,
-//     height: 155.,
-//   },
-// ]
-
-// featuresForInference->_zeroMean->Js.Array.forEach(feature => {
-//   inference(state, feature)->Js.log
-// }, _)

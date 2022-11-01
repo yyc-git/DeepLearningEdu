@@ -1,145 +1,159 @@
-// type state = {
-//   wMatrixBetweenLayer1Layer2: Matrix.t,
-//   wMatrixBetweenLayer2Layer3: Matrix.t,
-// }
+type state = {
+  wMatrixBetweenLayer1Layer2: Matrix.t,
+  wMatrixBetweenLayer2Layer3: Matrix.t,
+}
 
-// type feature = {
-//   weight: float,
-//   height: float,
-// }
+type feature = {
+  weight: float,
+  height: float,
+}
 
-// type forwardOutput = ((Vector.t, Vector.t), (Vector.t, Vector.t))
+type label =
+  | Male
+  | Female
 
-// let _createWMatrix = (getValueFunc, firstLayerNodeCount, secondLayerNodeCount) => {
-//   let row = secondLayerNodeCount
-//   let col = firstLayerNodeCount + 1
+type forwardOutput = ((Vector.t, Vector.t), (Vector.t, Vector.t))
 
-//   Matrix.create(row, col, ArraySt.range(0, row * col - 1)->ArraySt.map(_ => getValueFunc()))
-// }
+type layer2Gradient = Matrix.t
+type layer3Gradient = Matrix.t
 
-// let createState = (layer1NodeCount, layer2NodeCount, layer3NodeCount): state => {
-//   wMatrixBetweenLayer1Layer2: _createWMatrix(() => 0.1, layer1NodeCount, layer2NodeCount),
-//   wMatrixBetweenLayer2Layer3: _createWMatrix(() => 0.1, layer2NodeCount, layer3NodeCount),
-// }
+let _createWMatrix = (getValueFunc, firstLayerNodeCount, secondLayerNodeCount) => {
+  let row = secondLayerNodeCount
+  let col = firstLayerNodeCount + 1
 
-// let _activateFunc = x => {
-//   1. /. (1. +. Js.Math.exp(-.x))
-// }
+  Matrix.create(row, col, ArraySt.range(0, row * col - 1)->ArraySt.map(_ => getValueFunc()))
+}
 
-// // let forward = (state: state, feature: feature) => {
-// let forward = (feature: feature, state: state): forwardOutput => {
-//   let inputVector = Vector.create([feature.height, feature.weight, 1.0])
+let createState = (layer1NodeCount, layer2NodeCount, layer3NodeCount): state => {
+  wMatrixBetweenLayer1Layer2: _createWMatrix(() => 0.1, layer1NodeCount, layer2NodeCount),
+  wMatrixBetweenLayer2Layer3: _createWMatrix(() => 0.1, layer2NodeCount, layer3NodeCount),
+}
 
-//   let layer2Net = Vector.transformMatrix(state.wMatrixBetweenLayer1Layer2, inputVector)
+let _activateFunc = x => {
+  1. /. (1. +. Js.Math.exp(-.x))
+}
 
-//   let layer2OutputVector = layer2Net->Vector.map(_activateFunc)
+let _deriv_Sigmoid = x => {
+  let fx = _activateFunc(x)
 
-//   let layer3Net = Vector.transformMatrix(
-//     state.wMatrixBetweenLayer2Layer3,
-//     /* ! 注意：此处push 1.0 */
-//     layer2OutputVector->Vector.push(1.0),
-//   )
+  fx *. (1. -. fx)
+}
 
-//   let layer3OutputVector = layer3Net->Vector.map(_activateFunc)
+let forward = (inputVector: Vector.t, state: state): forwardOutput => {
+  let layer2Net = Vector.transformMatrix(state.wMatrixBetweenLayer1Layer2, inputVector)
 
-//   ((layer2Net, layer2OutputVector), (layer3Net, layer3OutputVector))
-// }
+  let layer2OutputVector = layer2Net->Vector.map(_activateFunc)
 
-// // let bpDelta = () => {
-// // //TODO implement
-// // Obj.magic(1)
-// // }
+  let layer3Net = Vector.transformMatrix(
+    state.wMatrixBetweenLayer2Layer3,
+    /* ! 注意：此处push 1.0 */
+    layer2OutputVector->Vector.push(1.0),
+  )
 
-// let backward = (((layer2Net, layer2OutputVector), (layer3Net, layer3OutputVector)): forwardOutput, state: state): (
-//   (Vector.t, Matrix.t),
-//   (Vector.t, Matrix.t),
-// ) => {
-//   TODO
-// }
+  let layer3OutputVector = layer3Net->Vector.map(_activateFunc)
 
-// let _convertLabelToFloat = label =>
-//   switch label {
-//   | Male => 0.
-//   | Female => 1.
-//   }
+  ((layer2Net, layer2OutputVector), (layer3Net, layer3OutputVector))
+}
 
-// let _computeLoss = (labels, outputs) => {
-//   // Js.log((labels, outputs))
-//   labels->ArraySt.reduceOneParami((. result, label, i) => {
-//     result +. Js.Math.pow_float(~base=label -. outputs[i], ~exp=2.0)
-//   }, 0.) /. ArraySt.length(labels)->Obj.magic
-// }
+let backward = (
+  ((layer2Net, layer2OutputVector), (layer3Net, layer3OutputVector)): forwardOutput,
+  n: float,
+  label: float,
+  inputVector: Vector.t,
+  state: state,
+): (layer2Gradient, layer3Gradient) => {
+  TODO
+}
 
-// let train = (state: state, features: array<feature>, labels: array<label>): state => {
-//   // let learnRate = 0.001
-//   // let epochs = 100000
+let _convertLabelToFloat = label =>
+  switch label {
+  | Male => 0.
+  | Female => 1.
+  }
 
-//   let learnRate = 0.1
-//   let epochs = 1000
+let _computeLoss = (labels, outputs) => {
+  labels->ArraySt.reduceOneParami((. result, label, i) => {
+    result +. Js.Math.pow_float(~base=label -. outputs[i], ~exp=2.0)
+  }, 0.) /. ArraySt.length(labels)->Obj.magic
+}
 
-//   let n = features->ArraySt.length->Obj.magic
+let _createInputVector = (feature: feature) => {
+  Vector.create([feature.height, feature.weight, 1.0])
+}
 
-//   ArraySt.range(0, epochs - 1)->ArraySt.reduceOneParam((. state, epoch) => {
-//     let state = features->ArraySt.reduceOneParami((. state, feature, i) => {
-//       let label = labels[i]->_convertLabelToFloat
+let train = (state: state, features: array<feature>, labels: array<label>): state => {
+  let learnRate = 0.1
+  let epochs = 1000
 
-//       let ((layer2Delta, layer2Gradient), (layer3Delta, layer3Gradient)) =
-//         forward(feature, state)->backward(state)
+  let n = features->ArraySt.length->Obj.magic
 
-//       {
-//         wMatrixBetweenLayer1Layer2: Matrix.sub(
-//           state.wMatrixBetweenLayer1Layer2,
-//           layer2Gradient->Matrix.multiplyScalar(learnRate, _),
-//         ),
-//         wMatrixBetweenLayer2Layer3: Matrix.sub(
-//           state.wMatrixBetweenLayer2Layer3,
-//           layer3Gradient->Matrix.multiplyScalar(learnRate, _),
-//         ),
-//       }
-//     }, state)
+  ArraySt.range(0, epochs - 1)->ArraySt.reduceOneParam((. state, epoch) => {
+    let state = features->ArraySt.reduceOneParami((. state, feature, i) => {
+      let label = labels[i]->_convertLabelToFloat
 
-//     mod(epoch, 10) == 0
-//       ? {
-//           // Js.log(state)
-//           Js.log((
-//             "loss: ",
-//             _computeLoss(
-//               labels->ArraySt.map(_convertLabelToFloat),
-//               features->ArraySt.map(feature => {
-//                 let (_, (_, y5)) = forward(feature, state)
+      let inputVector = _createInputVector(feature)
 
-//                 y5
-//               }),
-//             ),
-//           ))
+      let (layer2Gradient, layer3Gradient) =
+        forward(inputVector, state)->backward(n, label, inputVector, state)
 
-//           state
-//         }
-//       : state
-//   }, state)
-// }
+      {
+        wMatrixBetweenLayer1Layer2: Matrix.sub(
+          state.wMatrixBetweenLayer1Layer2,
+          layer2Gradient->Matrix.multiplyScalar(learnRate, _),
+        ),
+        wMatrixBetweenLayer2Layer3: Matrix.sub(
+          state.wMatrixBetweenLayer2Layer3,
+          layer3Gradient->Matrix.multiplyScalar(learnRate, _),
+        ),
+      }
+    }, state)
 
-// let state = createState()
+    mod(epoch, 10) == 0
+      ? {
+          // Js.log(state)
+          Js.log((
+            "loss: ",
+            _computeLoss(
+              labels->ArraySt.map(_convertLabelToFloat),
+              features->ArraySt.map(feature => {
+                let inputVector = _createInputVector(feature)
 
-// let features = [
-//   {
-//     weight: 50.,
-//     height: 150.,
-//   },
-//   {
-//     weight: 51.,
-//     height: 149.,
-//   },
-//   {
-//     weight: 60.,
-//     height: 172.,
-//   },
-//   {
-//     weight: 90.,
-//     height: 188.,
-//   },
-// ]
+                let (_, (_, layer3OutputVector)) = forward(inputVector, state)
 
-// let labels = [Female, Female, Male, Male]
+                let y5 = layer3OutputVector->Vector.getExn(0)
 
-// let state = state->train(features, labels)
+                y5
+              }),
+            ),
+          ))
+
+          state
+        }
+      : state
+  }, state)
+}
+
+let state = createState(2, 2, 1)
+
+let features = [
+  {
+    weight: 50.,
+    height: 150.,
+  },
+  {
+    weight: 51.,
+    height: 149.,
+  },
+  {
+    weight: 60.,
+    height: 172.,
+  },
+  {
+    weight: 90.,
+    height: 188.,
+  },
+]
+
+let labels = [Female, Female, Male, Male]
+
+let state = state->train(features, labels)

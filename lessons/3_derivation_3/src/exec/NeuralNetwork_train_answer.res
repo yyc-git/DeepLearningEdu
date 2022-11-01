@@ -14,6 +14,9 @@ type label =
 
 type forwardOutput = ((Vector.t, Vector.t), (Vector.t, Vector.t))
 
+type layer2Gradient = Matrix.t
+type layer3Gradient = Matrix.t
+
 let _createWMatrix = (getValueFunc, firstLayerNodeCount, secondLayerNodeCount) => {
   let row = secondLayerNodeCount
   let col = firstLayerNodeCount + 1
@@ -58,8 +61,7 @@ let backward = (
   label: float,
   inputVector: Vector.t,
   state: state,
-): // ): ((Vector.t, Matrix.t), (Vector.t, Matrix.t)) => {
-(Matrix.t, Matrix.t) => {
+): (layer2Gradient, layer3Gradient) => {
   // let d_E_d_y5 = -2. /. n *. (label -. y5)
 
   // let d_y_net5 = _deriv_Sigmoid(layer3Net->Vector.getExn(0))
@@ -101,7 +103,6 @@ let backward = (
     _deriv_Sigmoid(layer2NetValue)
   })
 
-
   let layer2Gradient = Matrix.multiply(
     Matrix.create(Vector.length(layer2Delta), 1, layer2Delta),
     Matrix.create(1, Vector.length(inputVector), inputVector),
@@ -115,12 +116,6 @@ let backward = (
     Matrix.create(1, Vector.length(layer2OutputVector), layer2OutputVector),
   )
 
-
-  // Js.log((layer2Delta, layer3Delta))
-  // Js.log(layer3Gradient)
-  // Js.log(layer2Gradient)
-
-  // ((layer2Delta, layer2Gradient), (layer3Delta, layer3Gradient))
   (layer2Gradient, layer3Gradient)
 }
 
@@ -131,7 +126,6 @@ let _convertLabelToFloat = label =>
   }
 
 let _computeLoss = (labels, outputs) => {
-  // Js.log((labels, outputs))
   labels->ArraySt.reduceOneParami((. result, label, i) => {
     result +. Js.Math.pow_float(~base=label -. outputs[i], ~exp=2.0)
   }, 0.) /. ArraySt.length(labels)->Obj.magic
@@ -142,12 +136,8 @@ let _createInputVector = (feature: feature) => {
 }
 
 let train = (state: state, features: array<feature>, labels: array<label>): state => {
-  // let learnRate = 0.001
-  // let epochs = 100000
-
   let learnRate = 0.1
   let epochs = 1000
-  // let epochs = 1
 
   let n = features->ArraySt.length->Obj.magic
 
@@ -156,8 +146,6 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
       let label = labels[i]->_convertLabelToFloat
 
       let inputVector = _createInputVector(feature)
-
-      // Js.log(forward(inputVector, state))
 
       let (layer2Gradient, layer3Gradient) =
         forward(inputVector, state)->backward(n, label, inputVector, state)
@@ -222,8 +210,5 @@ let features = [
 ]
 
 let labels = [Female, Female, Male, Male]
-// let labels = [Female]
 
 let state = state->train(features, labels)
-
-// Js.log(state)
