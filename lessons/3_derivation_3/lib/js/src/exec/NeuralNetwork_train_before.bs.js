@@ -4,14 +4,6 @@ var Curry = require("rescript/lib/js/curry.js");
 var Belt_Array = require("rescript/lib/js/belt_Array.js");
 var Caml_array = require("rescript/lib/js/caml_array.js");
 
-function createState(param) {
-  return {
-          weight1: Math.random(),
-          weight2: Math.random(),
-          bias: Math.random()
-        };
-}
-
 function _activateFunc(x) {
   return 1 / (1 + Math.exp(-x));
 }
@@ -21,7 +13,6 @@ function forward(state, sampleData) {
 }
 
 var Neural_forward_answer = {
-  createState: createState,
   _activateFunc: _activateFunc,
   forward: forward
 };
@@ -74,7 +65,7 @@ var Neural_forward = {
   forward: forward$1
 };
 
-function createState$1(param) {
+function createState(param) {
   return {
           weight31: 0.1,
           weight41: 0.1,
@@ -239,7 +230,7 @@ var state = train({
 exports.Neural_forward_answer = Neural_forward_answer;
 exports.ArraySt = ArraySt;
 exports.Neural_forward = Neural_forward;
-exports.createState = createState$1;
+exports.createState = createState;
 exports._activateFunc = _activateFunc$1;
 exports._deriv_Sigmoid = _deriv_Sigmoid;
 exports.forward = forward$2;

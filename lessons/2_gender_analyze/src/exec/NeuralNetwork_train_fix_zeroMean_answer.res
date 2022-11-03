@@ -132,8 +132,7 @@ let _computeLoss = (labels, outputs) => {
   // Js.log((labels, outputs))
   labels->ArraySt.reduceOneParami((. result, label, i) => {
     result +. Js.Math.pow_float(~base=label -. outputs[i], ~exp=2.0)
-  }, 0.)
-   /. ArraySt.length(labels)->Obj.magic
+  }, 0.) /. ArraySt.length(labels)->Obj.magic
 }
 
 let train = (state: state, features: array<feature>, labels: array<label>): state => {

@@ -39,10 +39,10 @@ module Neural_forward_answer = {
   //   | 1. => Female
   //   }
 
-  let forward = (state: state, sampleData: sampleData): float => {
-    (sampleData.height *. state.weight1 +. sampleData.weight *. state.weight2 +. state.bias)
-      ->_activateFunc
-  }
+  // let forward = (state: state, sampleData: sampleData): float => {
+  //   (sampleData.height *. state.weight1 +. sampleData.weight *. state.weight2 +. state.bias)
+  //     ->_activateFunc
+  // }
 
   // let inference = (state: state, sampleData: sampleData): gender => {
   //   forward(state, sampleData)->_convert
@@ -69,11 +69,6 @@ type feature = {
 type label =
   | Male
   | Female
-
-// type gender =
-//   | Male
-//   | Female
-//   | InValid
 
 module ArraySt = {
   let length = Js.Array.length
@@ -110,25 +105,15 @@ module Neural_forward = {
 }
 
 let createState = (): state => {
-  // weight31: Js.Math.random(),
-  // weight41: Js.Math.random(),
-  // weight32: Js.Math.random(),
-  // weight42: Js.Math.random(),
-  // weight53: Js.Math.random(),
-  // weight54: Js.Math.random(),
-  // bias3: Js.Math.random(),
-  // bias4: Js.Math.random(),
-  // bias5: Js.Math.random(),
-
-  weight31: 0.1,
-  weight41: 0.1,
-  weight32: 0.1,
-  weight42: 0.1,
-  weight53: 0.1,
-  weight54: 0.1,
-  bias3: 0.1,
-  bias4: 0.1,
-  bias5: 0.1,
+  weight31: Js.Math.random(),
+  weight41: Js.Math.random(),
+  weight32: Js.Math.random(),
+  weight42: Js.Math.random(),
+  weight53: Js.Math.random(),
+  weight54: Js.Math.random(),
+  bias3: Js.Math.random(),
+  bias4: Js.Math.random(),
+  bias5: Js.Math.random(),
 }
 
 let _activateFunc = x => {
@@ -191,6 +176,7 @@ let _convertLabelToFloat = label =>
 
 let _computeLoss = (labels, outputs) => {
   // Js.log((labels, outputs))
+
   labels->ArraySt.reduceOneParami((. result, label, i) => {
     result +. Js.Math.pow_float(~base=label -. outputs[i], ~exp=2.0)
   }, 0.) /. ArraySt.length(labels)->Obj.magic
@@ -199,7 +185,6 @@ let _computeLoss = (labels, outputs) => {
 let train = (state: state, features: array<feature>, labels: array<label>): state => {
   let learnRate = 0.1
   let epochs = 1000
-
   let n = features->ArraySt.length->Obj.magic
 
   ArraySt.range(0, epochs - 1)->ArraySt.reduceOneParam((. state, epoch) => {
@@ -231,6 +216,9 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
       let d_y4_d_b4 = _deriv_Sigmoid(net4)
 
       // Update weights and biases
+
+      // Js.log(learnRate *. d_E_d_y5 *. d_y5_d_y3 *. d_y3_d_w31,)
+      // Js.log(d_y5_d_y3)
 
       {
         weight31: state.weight31 -. learnRate *. d_E_d_y5 *. d_y5_d_y3 *. d_y3_d_w31,
@@ -266,6 +254,12 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
   }, state)
 }
 
+let inference = (state: state, feature: feature) => {
+  let (_, (_, _, y5)) = forward(state, feature)
+
+  y5
+}
+
 let state = createState()
 
 let features = [
@@ -290,3 +284,18 @@ let features = [
 let labels = [Female, Female, Male, Male]
 
 let state = state->train(features, labels)
+
+let featuresForInference = [
+  {
+    weight: 89.,
+    height: 190.,
+  },
+  {
+    weight: 60.,
+    height: 155.,
+  },
+]
+
+featuresForInference->Js.Array.forEach(feature => {
+  inference(state, feature)->Js.log
+}, _)

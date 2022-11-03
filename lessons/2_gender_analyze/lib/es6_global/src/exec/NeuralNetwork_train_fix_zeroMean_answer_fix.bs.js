@@ -1,6 +1,7 @@
 
 
 import * as Curry from "../../../../../../node_modules/rescript/lib/es6/curry.js";
+import * as Js_math from "../../../../../../node_modules/rescript/lib/es6/js_math.js";
 import * as Belt_Array from "../../../../../../node_modules/rescript/lib/es6/belt_Array.js";
 import * as Caml_array from "../../../../../../node_modules/rescript/lib/es6/caml_array.js";
 
@@ -8,13 +9,8 @@ function _activateFunc(x) {
   return 1 / (1 + Math.exp(-x));
 }
 
-function forward(state, sampleData) {
-  return _activateFunc(sampleData.height * state.weight1 + sampleData.weight * state.weight2 + state.bias);
-}
-
 var Neural_forward_answer = {
-  _activateFunc: _activateFunc,
-  forward: forward
+  _activateFunc: _activateFunc
 };
 
 function length(prim) {
@@ -53,7 +49,7 @@ var ArraySt = {
   reduceOneParami: reduceOneParami
 };
 
-function forward$1(state, feature) {
+function forward(state, feature) {
   var net = feature.height * state.weight1 + feature.weight * state.weight2 + state.bias;
   return [
           net,
@@ -62,20 +58,20 @@ function forward$1(state, feature) {
 }
 
 var Neural_forward = {
-  forward: forward$1
+  forward: forward
 };
 
 function createState(param) {
   return {
-          weight31: 0.1,
-          weight41: 0.1,
-          weight32: 0.1,
-          weight42: 0.1,
-          weight53: 0.1,
-          weight54: 0.1,
-          bias3: 0.1,
-          bias4: 0.1,
-          bias5: 0.1
+          weight31: Math.random(),
+          weight41: Math.random(),
+          weight32: Math.random(),
+          weight42: Math.random(),
+          weight53: Math.random(),
+          weight54: Math.random(),
+          bias3: Math.random(),
+          bias4: Math.random(),
+          bias5: Math.random()
         };
 }
 
@@ -88,20 +84,20 @@ function _deriv_Sigmoid(x) {
   return fx * (1 - fx);
 }
 
-function forward$2(state, feature) {
-  var match = forward$1({
+function forward$1(state, feature) {
+  var match = forward({
         weight1: state.weight31,
         weight2: state.weight32,
         bias: state.bias3
       }, feature);
   var y3 = match[1];
-  var match$1 = forward$1({
+  var match$1 = forward({
         weight1: state.weight41,
         weight2: state.weight42,
         bias: state.bias4
       }, feature);
   var y4 = match$1[1];
-  var match$2 = forward$1({
+  var match$2 = forward({
         weight1: state.weight53,
         weight2: state.weight54,
         bias: state.bias5
@@ -144,7 +140,7 @@ function train(state, features, labels) {
                         var label = Caml_array.get(labels, i) ? 1 : 0;
                         var x1 = feature.weight;
                         var x2 = feature.height;
-                        var match = forward$2(state, feature);
+                        var match = forward$1(state, feature);
                         var match$1 = match[1];
                         var match$2 = match[0];
                         var net5 = match$2[2];
@@ -178,7 +174,7 @@ function train(state, features, labels) {
                   console.log([
                         "loss: ",
                         _computeLoss(labels.map(_convertLabelToFloat), features.map(function (feature) {
-                                  var match = forward$2(state$1, feature);
+                                  var match = forward$1(state$1, feature);
                                   return match[1][2];
                                 }))
                       ]);
@@ -188,6 +184,13 @@ function train(state, features, labels) {
                 }
               }));
 }
+
+function inference(state, feature) {
+  var match = forward$1(state, feature);
+  return match[1][2];
+}
+
+var state = createState(undefined);
 
 var features = [
   {
@@ -215,17 +218,48 @@ var labels = [
   /* Male */0
 ];
 
-var state = train({
-      weight31: 0.1,
-      weight41: 0.1,
-      weight32: 0.1,
-      weight42: 0.1,
-      weight53: 0.1,
-      weight54: 0.1,
-      bias3: 0.1,
-      bias4: 0.1,
-      bias5: 0.1
-    }, features, labels);
+function _mean(values) {
+  return Belt_Array.reduceU(values, 0, (function (sum, value) {
+                return sum + value;
+              })) / values.length;
+}
+
+function _zeroMean(features) {
+  var weightMean = Js_math.floor(_mean(features.map(function (feature) {
+                return feature.weight;
+              })));
+  var heightMean = Js_math.floor(_mean(features.map(function (feature) {
+                return feature.height;
+              })));
+  return features.map(function (feature) {
+              return {
+                      weight: feature.weight - weightMean,
+                      height: feature.height - heightMean
+                    };
+            });
+}
+
+var features$1 = _zeroMean(features);
+
+var state$1 = train(state, features$1, labels);
+
+var featuresForInference = [
+  {
+    weight: 89,
+    height: 190
+  },
+  {
+    weight: 60,
+    height: 155
+  }
+];
+
+var __x = _zeroMean(featuresForInference);
+
+__x.forEach(function (feature) {
+      console.log(inference(state$1, feature));
+      
+    });
 
 export {
   Neural_forward_answer ,
@@ -234,13 +268,17 @@ export {
   createState ,
   _activateFunc$1 as _activateFunc,
   _deriv_Sigmoid ,
-  forward$2 as forward,
+  forward$1 as forward,
   _convertLabelToFloat ,
   _computeLoss ,
   train ,
-  features ,
+  inference ,
   labels ,
-  state ,
+  _mean ,
+  _zeroMean ,
+  features$1 as features,
+  state$1 as state,
+  featuresForInference ,
   
 }
 /* state Not a pure module */
