@@ -25,8 +25,20 @@ let _createWMatrix = (getValueFunc, firstLayerNodeCount, secondLayerNodeCount) =
 }
 
 let createState = (layer1NodeCount, layer2NodeCount, layer3NodeCount): state => {
-  wMatrixBetweenLayer1Layer2: _createWMatrix(() => 0.1, layer1NodeCount, layer2NodeCount),
-  wMatrixBetweenLayer2Layer3: _createWMatrix(() => 0.1, layer2NodeCount, layer3NodeCount),
+  wMatrixBetweenLayer1Layer2: _createWMatrix(
+    // () => 0.1,
+    //TODO init value
+    Obj.magic(1),
+    layer1NodeCount,
+    layer2NodeCount,
+  ),
+  wMatrixBetweenLayer2Layer3: _createWMatrix(
+    // () => 0.1,
+    //TODO init value
+    Obj.magic(1),
+    layer2NodeCount,
+    layer3NodeCount,
+  ),
 }
 
 let _activateFunc = x => {
@@ -62,8 +74,41 @@ let backward = (
   inputVector: Vector.t,
   state: state,
 ): (layer2Gradient, layer3Gradient) => {
-  //TODO implement
-  Obj.magic(1)
+  let layer3Delta = layer3OutputVector->Vector.mapi((layer3OutputValue, i) => {
+    let d_E_d_value = -2. /. n *. (label -. layer3OutputValue)
+
+    let d_y_net_value = _deriv_Sigmoid(layer3Net->Vector.getExn(i))
+
+    d_E_d_value *. d_y_net_value
+  })
+
+  let layer2Delta = layer2Net->Vector.mapi((layer2NetValue, i) => {
+    Vector.dot(
+      layer3Delta,
+      MatrixUtils.getCol(
+        Matrix.getRowCount(state.wMatrixBetweenLayer2Layer3),
+        Matrix.getColCount(state.wMatrixBetweenLayer2Layer3),
+        i,
+        Matrix.getData(state.wMatrixBetweenLayer2Layer3),
+      ),
+    ) *.
+    _deriv_Sigmoid(layer2NetValue)
+  })
+
+  let layer2Gradient = Matrix.multiply(
+    Matrix.create(Vector.length(layer2Delta), 1, layer2Delta),
+    Matrix.create(1, Vector.length(inputVector), inputVector),
+  )
+
+  /* ! 注意：此处push 1.0 */
+  let layer2OutputVector = layer2OutputVector->Vector.push(1.0)
+
+  let layer3Gradient = Matrix.multiply(
+    Matrix.create(Vector.length(layer3Delta), 1, layer3Delta),
+    Matrix.create(1, Vector.length(layer2OutputVector), layer2OutputVector),
+  )
+
+  (layer2Gradient, layer3Gradient)
 }
 
 let _convertLabelToFloat = label =>
@@ -134,6 +179,11 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
   }, state)
 }
 
+let inference = (state: state, feature: feature) => {
+  //TODO implement
+  Obj.magic(1)
+}
+
 let state = createState(2, 2, 1)
 
 let features = [
@@ -157,4 +207,9 @@ let features = [
 
 let labels = [Female, Female, Male, Male]
 
+//TODO handle features
+let features = features->Obj.magic(1)
+
 let state = state->train(features, labels)
+
+//TODO inference 

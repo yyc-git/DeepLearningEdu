@@ -25,8 +25,8 @@ let _createWMatrix = (getValueFunc, firstLayerNodeCount, secondLayerNodeCount) =
 }
 
 let createState = (layer1NodeCount, layer2NodeCount, layer3NodeCount): state => {
-  wMatrixBetweenLayer1Layer2: _createWMatrix(() => 0.1, layer1NodeCount, layer2NodeCount),
-  wMatrixBetweenLayer2Layer3: _createWMatrix(() => 0.1, layer2NodeCount, layer3NodeCount),
+  wMatrixBetweenLayer1Layer2: _createWMatrix(Js.Math.random, layer1NodeCount, layer2NodeCount),
+  wMatrixBetweenLayer2Layer3: _createWMatrix(Js.Math.random, layer2NodeCount, layer3NodeCount),
 }
 
 let _activateFunc = x => {
@@ -62,8 +62,41 @@ let backward = (
   inputVector: Vector.t,
   state: state,
 ): (layer2Gradient, layer3Gradient) => {
-  //TODO implement
-  Obj.magic(1)
+  let layer3Delta = layer3OutputVector->Vector.mapi((layer3OutputValue, i) => {
+    let d_E_d_value = -2. /. n *. (label -. layer3OutputValue)
+
+    let d_y_net_value = _deriv_Sigmoid(layer3Net->Vector.getExn(i))
+
+    d_E_d_value *. d_y_net_value
+  })
+
+  let layer2Delta = layer2Net->Vector.mapi((layer2NetValue, i) => {
+    Vector.dot(
+      layer3Delta,
+      MatrixUtils.getCol(
+        Matrix.getRowCount(state.wMatrixBetweenLayer2Layer3),
+        Matrix.getColCount(state.wMatrixBetweenLayer2Layer3),
+        i,
+        Matrix.getData(state.wMatrixBetweenLayer2Layer3),
+      ),
+    ) *.
+    _deriv_Sigmoid(layer2NetValue)
+  })
+
+  let layer2Gradient = Matrix.multiply(
+    Matrix.create(Vector.length(layer2Delta), 1, layer2Delta),
+    Matrix.create(1, Vector.length(inputVector), inputVector),
+  )
+
+  /* ! 注意：此处push 1.0 */
+  let layer2OutputVector = layer2OutputVector->Vector.push(1.0)
+
+  let layer3Gradient = Matrix.multiply(
+    Matrix.create(Vector.length(layer3Delta), 1, layer3Delta),
+    Matrix.create(1, Vector.length(layer2OutputVector), layer2OutputVector),
+  )
+
+  (layer2Gradient, layer3Gradient)
 }
 
 let _convertLabelToFloat = label =>
@@ -121,6 +154,7 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
 
                 let (_, (_, layer3OutputVector)) = forward(inputVector, state)
 
+                // TODO fix
                 let y5 = layer3OutputVector->Vector.getExn(0)
 
                 y5
@@ -132,6 +166,16 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
         }
       : state
   }, state)
+}
+
+let inference = (state: state, feature: feature) => {
+  let inputVector = _createInputVector(feature)
+
+  let (_, (_, layer3OutputVector)) = forward(inputVector, state)
+
+  let y5 = layer3OutputVector->Vector.getExn(0)
+
+  y5
 }
 
 let state = createState(2, 2, 1)
@@ -157,4 +201,37 @@ let features = [
 
 let labels = [Female, Female, Male, Male]
 
+let _mean = values => {
+  values->ArraySt.reduceOneParam((. sum, value) => {
+    sum +. value
+  }, 0.) /. ArraySt.length(values)->Obj.magic
+}
+
+let _zeroMean = features => {
+  let weightMean = features->ArraySt.map(feature => feature.weight)->_mean->Js.Math.floor->Obj.magic
+  let heightMean = features->ArraySt.map(feature => feature.height)->_mean->Js.Math.floor->Obj.magic
+
+  features->ArraySt.map(feature => {
+    weight: feature.weight -. weightMean,
+    height: feature.height -. heightMean,
+  })
+}
+
+let features = features->_zeroMean
+
 let state = state->train(features, labels)
+
+let featuresForInference = [
+  {
+    weight: 89.,
+    height: 190.,
+  },
+  {
+    weight: 60.,
+    height: 155.,
+  },
+]
+
+featuresForInference->_zeroMean->Js.Array.forEach(feature => {
+  inference(state, feature)->Js.log
+}, _)

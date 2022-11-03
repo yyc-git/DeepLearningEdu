@@ -1,10 +1,12 @@
+'use strict';
 
-
-import * as Curry from "../../../../../../node_modules/rescript/lib/es6/curry.js";
-import * as Caml_array from "../../../../../../node_modules/rescript/lib/es6/caml_array.js";
-import * as Matrix$Gender_analyze from "./Matrix.bs.js";
-import * as Vector$Gender_analyze from "./Vector.bs.js";
-import * as ArraySt$Gender_analyze from "./ArraySt.bs.js";
+var Curry = require("rescript/lib/js/curry.js");
+var Js_math = require("rescript/lib/js/js_math.js");
+var Caml_array = require("rescript/lib/js/caml_array.js");
+var Matrix$Gender_analyze = require("./Matrix.bs.js");
+var Vector$Gender_analyze = require("./Vector.bs.js");
+var ArraySt$Gender_analyze = require("./ArraySt.bs.js");
+var MatrixUtils$Gender_analyze = require("./MatrixUtils.bs.js");
 
 function _createWMatrix(getValueFunc, firstLayerNodeCount, secondLayerNodeCount) {
   var col = firstLayerNodeCount + 1 | 0;
@@ -15,11 +17,11 @@ function _createWMatrix(getValueFunc, firstLayerNodeCount, secondLayerNodeCount)
 
 function createState(layer1NodeCount, layer2NodeCount, layer3NodeCount) {
   return {
-          wMatrixBetweenLayer1Layer2: _createWMatrix((function (param) {
-                  return 0.1;
+          wMatrixBetweenLayer1Layer2: _createWMatrix((function (prim) {
+                  return Math.random();
                 }), layer1NodeCount, layer2NodeCount),
-          wMatrixBetweenLayer2Layer3: _createWMatrix((function (param) {
-                  return 0.1;
+          wMatrixBetweenLayer2Layer3: _createWMatrix((function (prim) {
+                  return Math.random();
                 }), layer2NodeCount, layer3NodeCount)
         };
 }
@@ -51,7 +53,24 @@ function forward(inputVector, state) {
 }
 
 function backward(param, n, label, inputVector, state) {
-  return 1;
+  var match = param[1];
+  var layer3Net = match[0];
+  var match$1 = param[0];
+  var layer3Delta = Vector$Gender_analyze.mapi(match[1], (function (layer3OutputValue, i) {
+          var d_E_d_value = -2 / n * (label - layer3OutputValue);
+          var d_y_net_value = _deriv_Sigmoid(Vector$Gender_analyze.getExn(layer3Net, i));
+          return d_E_d_value * d_y_net_value;
+        }));
+  var layer2Delta = Vector$Gender_analyze.mapi(match$1[0], (function (layer2NetValue, i) {
+          return Vector$Gender_analyze.dot(layer3Delta, MatrixUtils$Gender_analyze.getCol(Matrix$Gender_analyze.getRowCount(state.wMatrixBetweenLayer2Layer3), Matrix$Gender_analyze.getColCount(state.wMatrixBetweenLayer2Layer3), i, Matrix$Gender_analyze.getData(state.wMatrixBetweenLayer2Layer3))) * _deriv_Sigmoid(layer2NetValue);
+        }));
+  var layer2Gradient = Matrix$Gender_analyze.multiply(Matrix$Gender_analyze.create(Vector$Gender_analyze.length(layer2Delta), 1, layer2Delta), Matrix$Gender_analyze.create(1, Vector$Gender_analyze.length(inputVector), inputVector));
+  var layer2OutputVector = Vector$Gender_analyze.push(match$1[1], 1.0);
+  var layer3Gradient = Matrix$Gender_analyze.multiply(Matrix$Gender_analyze.create(Vector$Gender_analyze.length(layer3Delta), 1, layer3Delta), Matrix$Gender_analyze.create(1, Vector$Gender_analyze.length(layer2OutputVector), layer2OutputVector));
+  return [
+          layer2Gradient,
+          layer3Gradient
+        ];
 }
 
 function _convertLabelToFloat(label) {
@@ -104,6 +123,12 @@ function train(state, features, labels) {
               }), state);
 }
 
+function inference(state, feature) {
+  var inputVector = _createInputVector(feature);
+  var match = forward(inputVector, state);
+  return Vector$Gender_analyze.getExn(match[1][1], 0);
+}
+
 var state = createState(2, 2, 1);
 
 var features = [
@@ -132,22 +157,64 @@ var labels = [
   /* Male */0
 ];
 
-var state$1 = train(state, features, labels);
-
-export {
-  _createWMatrix ,
-  createState ,
-  _activateFunc ,
-  _deriv_Sigmoid ,
-  forward ,
-  backward ,
-  _convertLabelToFloat ,
-  _computeLoss ,
-  _createInputVector ,
-  train ,
-  features ,
-  labels ,
-  state$1 as state,
-  
+function _mean(values) {
+  return ArraySt$Gender_analyze.reduceOneParam(values, (function (sum, value) {
+                return sum + value;
+              }), 0) / ArraySt$Gender_analyze.length(values);
 }
+
+function _zeroMean(features) {
+  var weightMean = Js_math.floor(_mean(ArraySt$Gender_analyze.map(features, (function (feature) {
+                  return feature.weight;
+                }))));
+  var heightMean = Js_math.floor(_mean(ArraySt$Gender_analyze.map(features, (function (feature) {
+                  return feature.height;
+                }))));
+  return ArraySt$Gender_analyze.map(features, (function (feature) {
+                return {
+                        weight: feature.weight - weightMean,
+                        height: feature.height - heightMean
+                      };
+              }));
+}
+
+var features$1 = _zeroMean(features);
+
+var state$1 = train(state, features$1, labels);
+
+var featuresForInference = [
+  {
+    weight: 89,
+    height: 190
+  },
+  {
+    weight: 60,
+    height: 155
+  }
+];
+
+var __x = _zeroMean(featuresForInference);
+
+__x.forEach(function (feature) {
+      console.log(inference(state$1, feature));
+      
+    });
+
+exports._createWMatrix = _createWMatrix;
+exports.createState = createState;
+exports._activateFunc = _activateFunc;
+exports._deriv_Sigmoid = _deriv_Sigmoid;
+exports.forward = forward;
+exports.backward = backward;
+exports._convertLabelToFloat = _convertLabelToFloat;
+exports._computeLoss = _computeLoss;
+exports._createInputVector = _createInputVector;
+exports.train = train;
+exports.inference = inference;
+exports.labels = labels;
+exports._mean = _mean;
+exports._zeroMean = _zeroMean;
+exports.features = features$1;
+exports.state = state$1;
+exports.featuresForInference = featuresForInference;
 /* state Not a pure module */
