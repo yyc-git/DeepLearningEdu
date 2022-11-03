@@ -1,4 +1,18 @@
-- 能否在梯度向量化公式中，将重复计算提出来？
-参考[一文搞懂反向传](https://cloud.tencent.com/developer/article/1617681):
-> 其实对于已经计算完毕的节点我们完全可以直接拿来用，因此我们可以重新看待这个问题，从后往前更新。先更新后边的权重，之后再在此基础上利用更新后边的权重产生的中间值来更新较靠前的参数。
-这个中间变量就是本课要引入的误差项
+任务：实现全连接层的后向传播
+
+请实现全连接层的后向传播的代码NeuralNetwork_train（损失函数和激活函数与判断性别Demo一样）
+
+
+- 使用判断性别Demo的神经网络结构，运行代码，通过运行测试
+[NeuralNetwork_train_answer](TODO)的运行结果与[NeuralNetwork_train_before](TODO)一样，从而通过运行测试
+
+
+
+
+任务：使用全连接层实现“判断性别Demo”
+
+- 请参考代码[NeuralNetwork_train_fix_zeroMean_answer_fix](TODO)，整合全连接层的前向、后向传播的代码
+
+
+- 使用判断性别Demo的神经网络结构，运行代码，通过“判断性别Demo”的运行测试
+运行代码：[LinearLayer_answer](TODO)，运行结果是loss收敛，正确推理出性别
