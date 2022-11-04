@@ -73,6 +73,16 @@ let push = (vec, value) => {
   vec->ArraySt.sliceFrom(0)->ArraySt.push(value)
 }
 
+let reducei = (vec, func) => {
+  vec->ArraySt.reduceOneParami(func)
+}
+
+let sum = vec => {
+  vec->reducei((. result, value, _) => {
+    result +. value
+  }, 0.)
+}
+
 let toArray = vec => {
   vec
 }

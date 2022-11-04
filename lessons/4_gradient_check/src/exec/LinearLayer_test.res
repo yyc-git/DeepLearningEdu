@@ -322,21 +322,9 @@ let checkGradient = (inputVector, labelVector) => {
       outputVector->Vector.toArray,
     )
 
-  // let _forwardLayer3Node = (nodeIndex, layer2OutputVector, state) => {
-  //   let (_, outputVector) = _forwardLayer3(layer2OutputVector, state)
-
-  //   outputVector->Vector.getExn(nodeIndex)
-  // }
-
-  // // let _computeErrorForLayer2 = (output) => {
-
-  // // }
-
-  // let _forwardLayer2Node = (nodeIndex, layer2OutputVector, state) => {
-  //   let (_, outputVector) = _forwardLayer3(layer2OutputVector, state)
-
-  //   outputVector->Vector.getExn(nodeIndex)
-  // }
+  let _computeErrorForLayer2 = outputVector => {
+    outputVector->Vector.sum
+  }
 
   let state = createState(2, 2, 1)
 
@@ -352,6 +340,8 @@ let checkGradient = (inputVector, labelVector) => {
   let layer3Delta = _bpLayer3Delta(layer3Net, layer3OutputVector, n, labelVector)
 
   // let layer2Delta = _bpLayer2Delta(layer2Net, layer3Delta, state)
+
+  /* ! check layer3 */
 
   _check(
     (
@@ -369,24 +359,32 @@ let checkGradient = (inputVector, labelVector) => {
     state,
   )
 
-  // TODO check layer2
-  // E = sum
-  // layer3Delta  = 1
+  /* ! check layer2 */
 
-  // _check(
-  //   (
-  //     (state, wMatrix) => {
-  //       ...state,
-  //       wMatrixBetweenLayer1Layer2: wMatrix,
-  //     },
-  //     _checkWeight(_computeErrorForLayer2),
-  //     _forwardLayer2Node,
-  //   ),
-  //   state.wMatrixBetweenLayer1Layer2,
-  //   layer2Delta,
-  //   inputVector,
-  //   state,
-  // )
+  let (layer2Net, layer2OutputVector) = _forwardLayer2(inputVector, state)
+
+  let layer3NodeCount = state.wMatrixBetweenLayer2Layer3->Matrix.getRowCount
+  let layer3Delta = ArraySt.range(0, layer3NodeCount - 1)->ArraySt.map(_ => 1.)->Vector.create
+
+  let layer2Delta = _bpLayer2Delta(layer2Net, layer3Delta, state)
+
+  let layer1OutputVector = inputVector
+
+  _check(
+    (
+      (state, wMatrix) => {
+        ...state,
+        wMatrixBetweenLayer1Layer2: wMatrix,
+      },
+      _forwardLayer2,
+      _computeErrorForLayer2,
+      _checkWeight,
+    ),
+    state.wMatrixBetweenLayer1Layer2,
+    layer2Delta,
+    layer1OutputVector,
+    state,
+  )
 }
 
 let testCheckGradient = () => {
