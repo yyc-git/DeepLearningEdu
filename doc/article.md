@@ -16,3 +16,26 @@
 
 - 使用判断性别Demo的神经网络结构，运行代码，通过“判断性别Demo”的运行测试
 运行代码：[LinearLayer_answer](TODO)，运行结果是loss收敛，正确推理出性别
+
+
+
+
+
+layer3
+
+    loss
+
+    refactor
+
+
+layer2
+
+    loss
+
+    layer3Delta
+
+    refactor
+
+
+
+refactor

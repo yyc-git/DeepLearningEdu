@@ -1,3 +1,4 @@
+
 // TODO only for test
 
 type state = {
@@ -41,38 +42,46 @@ let _deriv_Sigmoid = x => {
   fx *. (1. -. fx)
 }
 
-let forward = (inputVector: Vector.t, state: state): forwardOutput => {
-  let layer2Net = Vector.transformMatrix(state.wMatrixBetweenLayer1Layer2, inputVector)
+let _forwardLayer2 = (inputVector, state) => {
+  let layerNet = Vector.transformMatrix(state.wMatrixBetweenLayer1Layer2, inputVector)
 
-  let layer2OutputVector = layer2Net->Vector.map(_activateFunc)
+  let layerOutputVector = layerNet->Vector.map(_activateFunc)
 
-  let layer3Net = Vector.transformMatrix(
+  (layerNet, layerOutputVector)
+}
+
+let _forwardLayer3 = (layer2OutputVector, state) => {
+  let layerNet = Vector.transformMatrix(
     state.wMatrixBetweenLayer2Layer3,
     /* ! 注意：此处push 1.0 */
     layer2OutputVector->Vector.push(1.0),
   )
 
-  let layer3OutputVector = layer3Net->Vector.map(_activateFunc)
+  let layerOutputVector = layerNet->Vector.map(_activateFunc)
+
+  (layerNet, layerOutputVector)
+}
+
+let forward = (inputVector: Vector.t, state: state): forwardOutput => {
+  let (layer2Net, layer2OutputVector) = _forwardLayer2(inputVector, state)
+
+  let (layer3Net, layer3OutputVector) = _forwardLayer3(layer2OutputVector, state)
 
   ((layer2Net, layer2OutputVector), (layer3Net, layer3OutputVector))
 }
 
-let backward = (
-  ((layer2Net, layer2OutputVector), (layer3Net, layer3OutputVector)): forwardOutput,
-  n: float,
-  label: float,
-  inputVector: Vector.t,
-  state: state,
-): (layer2Gradient, layer3Gradient) => {
-  let layer3Delta = layer3OutputVector->Vector.mapi((layer3OutputValue, i) => {
+let _bpLayer3Delta = (layer3OutputVector, n, label) => {
+  layer3OutputVector->Vector.mapi((layer3OutputValue, i) => {
     let d_E_d_value = -2. /. n *. (label -. layer3OutputValue)
 
     let d_y_net_value = _deriv_Sigmoid(layer3Net->Vector.getExn(i))
 
     d_E_d_value *. d_y_net_value
   })
+}
 
-  let layer2Delta = layer2Net->Vector.mapi((layer2NetValue, i) => {
+let _bpLayer2Delta = (layer2Net, layer3Delta, state) => {
+  layer2Net->Vector.mapi((layer2NetValue, i) => {
     Vector.dot(
       layer3Delta,
       MatrixUtils.getCol(
@@ -84,6 +93,18 @@ let backward = (
     ) *.
     _deriv_Sigmoid(layer2NetValue)
   })
+}
+
+let backward = (
+  ((layer2Net, layer2OutputVector), (layer3Net, layer3OutputVector)): forwardOutput,
+  n: float,
+  label: float,
+  inputVector: Vector.t,
+  state: state,
+): (layer2Gradient, layer3Gradient) => {
+  let layer3Delta = _bpLayer3Delta(layer3OutputVector, n, label)
+
+  let layer2Delta = _bpLayer2Delta(layer2Net, layer3Delta, state)
 
   let layer2Gradient = Matrix.multiply(
     Matrix.create(Vector.length(layer2Delta), 1, layer2Delta),
@@ -180,6 +201,194 @@ let inference = (state: state, feature: feature) => {
   y5
 }
 
+let _mean = values => {
+  values->ArraySt.reduceOneParam((. sum, value) => {
+    sum +. value
+  }, 0.) /. ArraySt.length(values)->Obj.magic
+}
+
+let _zeroMean = features => {
+  let weightMean = features->ArraySt.map(feature => feature.weight)->_mean->Js.Math.floor->Obj.magic
+  let heightMean = features->ArraySt.map(feature => feature.height)->_mean->Js.Math.floor->Obj.magic
+
+  features->ArraySt.map(feature => {
+    weight: feature.weight -. weightMean,
+    height: feature.height -. heightMean,
+  })
+}
+
+// let checkLayer3Gradient = (inputVector, labelVector) => {
+let checkGradient = (inputVector, labelVector) => {
+  let _check = (
+    (
+      updateWMatrixFunc,
+   forwardLayerFunc,
+computeErrorFunc,
+      checkWeightFunc,
+    ),
+    wMatrix,
+    labelVector,
+    deltaVector,
+    previousLayerOutputVector,
+    state,
+  ) => {
+    wMatrix->Matrix.forEachRow(rowIndex => {
+      wMatrix->Matrix.forEachCol(colIndex => {
+        checkWeightFunc(
+          // (rowIndex, colIndex),
+          (
+   forwardLayerFunc,
+computeErrorFunc,
+            // forwardNodeFunc(colIndex),
+            // computeErrorFunc(labelVector -> Vector.getExn(rowIndex)),
+            (state, epsilon) => {
+              let (row, col, data) = wMatrix
+              let data = data->Js.Array.copy
+
+              data[
+                MatrixUtils.computeIndex(col, rowIndex, colIndex)
+              ] =
+                data[MatrixUtils.computeIndex(col, rowIndex, colIndex)] +. epsilon
+
+              updateWMatrixFunc(state, (row, col, data))
+            },
+            (state, epsilon) => {
+              let (row, col, data) = wMatrix
+              let data = data->Js.Array.copy
+
+              data[
+                MatrixUtils.computeIndex(col, rowIndex, colIndex)
+              ] =
+                data[MatrixUtils.computeIndex(col, rowIndex, colIndex)] -. epsilon
+
+              updateWMatrixFunc(state, (row, col, data))
+            },
+          ),
+          //           (
+          // computeErrorFunc, forwardNodeFunc
+          //           ),
+          deltaVector[rowIndex],
+          (previousLayerOutputVector, previousLayerOutputVector[colIndex]),
+          state,
+        )
+      })
+    })
+  }
+
+//   let _computeErrorForLayer3 = (label, output) => {
+//     (label -. output) *. (label -. output)
+//   }
+  
+// // let _computeLoss = (labels, outputs) => {
+// //   labels->ArraySt.reduceOneParami((. result, label, i) => {
+// //     result +. Js.Math.pow_float(~base=label -. outputs[i], ~exp=2.0)
+// //   }, 0.) /. ArraySt.length(labels)->Obj.magic
+// // }
+
+  let _computeErrorForLayer3 = (labelVector, outputVector) => _computeLoss(
+              labelVector -> Vector.toArray ->ArraySt.map(_convertLabelToFloat),
+              outputVector -> Vector.toArray )
+
+
+  // let _forwardLayer3Node = (nodeIndex, layer2OutputVector, state) => {
+  //   let (_, outputVector) = _forwardLayer3(layer2OutputVector, state)
+
+  //   outputVector->Vector.getExn(nodeIndex)
+  // }
+
+  // // let _computeErrorForLayer2 = (output) => {
+
+  // // }
+
+  // let _forwardLayer2Node = (nodeIndex, layer2OutputVector, state) => {
+  //   let (_, outputVector) = _forwardLayer3(layer2OutputVector, state)
+
+  //   outputVector->Vector.getExn(nodeIndex)
+  // }
+
+  let state = createNetWork(2, 2, 1)
+
+  // let ((layer2Net, layer2OutputVector), (layer3Net, layer3OutputVector)) as forwardOutput = forward(inputVector, state)
+  let (layer2Net, layer2OutputVector) = _forwardLayer2(inputVector, state)
+
+  let (layer3Net, layer3OutputVector) = _forwardLayer3(layer2OutputVector, state)
+
+  let n = 1
+
+  // let (layer2Delta, layer3Delta) = forwardOutput->backward(n, label, inputVector, state)
+
+  let layer3Delta = _bpLayer3Delta(layer3OutputVector, n, label)
+
+  // let layer2Delta = _bpLayer2Delta(layer2Net, layer3Delta, state)
+
+  _check(
+    (
+      (state, wMatrix) => {
+        ...state,
+        wMatrixBetweenLayer2Layer3: wMatrix,
+      },
+_forwardLayer3,
+_computeErrorForLayer3,
+_checkWeight
+      // (
+      //   (rowIndex, colIndex),
+      //   (updateWMatrixByAddEpsilonFunc, updateWMatrixBySubEpsilonFunc),
+      //   delta,
+      //   (previousLayerOutputVector, previousLayerNodeOutput),
+      //   state,
+      // ) => {
+      //   _checkWeight(
+      //     (
+      //       _forwardLayer3Node(colIndex),
+      //       _computeErrorForLayer3(labelVector->Vector.getExn(rowIndex)),
+      //       updateWMatrixByAddEpsilonFunc,
+      //       updateWMatrixBySubEpsilonFunc,
+      //     ),
+      //     delta,
+      //     (previousLayerOutputVector, previousLayerNodeOutput),
+      //     state,
+      //   )
+      // },
+    ),
+    state.wMatrixBetweenLayer2Layer3,
+    layer3Delta,
+    layer2OutputVector,
+    state,
+  )
+
+  // TODO check layer2
+// E = sum
+// layer3Delta  = 1
+
+  // _check(
+  //   (
+  //     (state, wMatrix) => {
+  //       ...state,
+  //       wMatrixBetweenLayer1Layer2: wMatrix,
+  //     },
+  //     _checkWeight(_computeErrorForLayer2),
+  //     _forwardLayer2Node,
+  //   ),
+  //   state.wMatrixBetweenLayer1Layer2,
+  //   layer2Delta,
+  //   inputVector,
+  //   state,
+  // )
+}
+
+
+let testCheckGradient = () => {
+let inputVector = [-2., -1., 0.] -> Vector.create
+let labelVector = [Female] -> Vector.create
+
+  checkGradient(inputVector, labelVector)
+}
+
+Js.log("begin test")
+testCheckGradient()->ignore
+Js.log("finish test")
+
+
 let state = createState(2, 2, 1)
 
 let features = [
@@ -202,130 +411,6 @@ let features = [
 ]
 
 let labels = [Female, Female, Male, Male]
-
-let _mean = values => {
-  values->ArraySt.reduceOneParam((. sum, value) => {
-    sum +. value
-  }, 0.) /. ArraySt.length(values)->Obj.magic
-}
-
-let _zeroMean = features => {
-  let weightMean = features->ArraySt.map(feature => feature.weight)->_mean->Js.Math.floor->Obj.magic
-  let heightMean = features->ArraySt.map(feature => feature.height)->_mean->Js.Math.floor->Obj.magic
-
-  features->ArraySt.map(feature => {
-    weight: feature.weight -. weightMean,
-    height: feature.height -. heightMean,
-  })
-}
-
-let checkLayer3Gradient = (inputVector, labelVector) => {
-  let _computeError = (label, output) => {
-    (label -. output) *. (label -. output)
-  }
-
-  let _checkWeight = (
-    (updateWMatrixByAddEpsilonFunc, updateWMatrixBySubEpsilonFunc),
-    state,
-    layer3Delta,
-    (inputVector, layer2OutputVector),
-  ) => {
-    let actualGradient = layer3Delta *. layer2OutputVector
-
-    let epsilon = 10e-4
-
-    let newState1 = updateWMatrixByAddEpsilonFunc(state, epsilon)
-
-    let (_, (_, layer3OutputVector)) = forward(inputVector, newState1)
-
-    let error1 = _computeError(labelVector[0], layer3OutputVector[0])
-
-    let newState2 = updateWMatrixBySubEpsilonFunc(state, epsilon)
-
-    let (_, (_, layer3OutputVector)) = forward(inputVector, newState2)
-
-    let error2 = _computeError(labelVector[0], layer3OutputVector[0])
-
-    let expectedGradient = (error1 -. error2) /. (2. *. epsilon)
-
-    Js.log((
-      "check gradient: ",
-      FloatTool.truncateFloatValue(expectedGradient, 4) ==
-        FloatTool.truncateFloatValue(actualGradient, 4),
-    ))
-  }
-
-  let state = createNetWork(2, 2, 1)
-
-  let (layer2OutputVector, layer3OutputVector) = predict(state, inputVector)
-
-  let (layer2Delta, layer3Delta) = computeDelta(
-    labelVector,
-    state.wMatrixBetweenLayer2Layer3,
-    layer2OutputVector,
-    layer3OutputVector,
-  )
-
-  TODO continue
-
-  let _check = (updateWMatrixFunc, wMatrixBetweenLayer2Layer3, deltaVector, inputVector, state) => {
-    wMatrixBetweenLayer2Layer3->Matrix.forEachRow(rowIndex => {
-      wMatrixBetweenLayer2Layer3->Matrix.forEachCol(colIndex => {
-        _checkWeight(
-          (
-            (state, epsilon) => {
-              let (row, col, data) = wMatrixBetweenLayer2Layer3
-              let data = data->Js.Array.copy
-
-              data[
-                MatrixUtils.computeIndex(col, rowIndex, colIndex)
-              ] =
-                data[MatrixUtils.computeIndex(col, rowIndex, colIndex)] +. epsilon
-
-              updateWMatrixFunc(state, (row, col, data))
-            },
-            (state, epsilon) => {
-              let (row, col, data) = wMatrixBetweenLayer2Layer3
-              let data = data->Js.Array.copy
-
-              data[
-                MatrixUtils.computeIndex(col, rowIndex, colIndex)
-              ] =
-                data[MatrixUtils.computeIndex(col, rowIndex, colIndex)] -. epsilon
-
-              updateWMatrixFunc(state, (row, col, data))
-            },
-          ),
-          state,
-          deltaVector[rowIndex],
-          inputVector[colIndex],
-        )
-      })
-    })
-  }
-
-  _check((state, wMatrix) => {
-    ...state,
-    wMatrixBetweenLayer2Layer3: wMatrix,
-  }, state.wMatrixBetweenLayer2Layer3, layer3Delta, layer2OutputVector, state)
-
-  _check((state, wMatrix) => {
-    ...state,
-    wMatrixBetweenLayer1Layer2: wMatrix,
-  }, state.wMatrixBetweenLayer1Layer2, layer2Delta, inputVector, state)
-}
-
-TODO let checkLayer2Gradient :
-E = sum
-layer3Delta  = 1
-
-// let testCheckGradient = () => {
-//   let data = [[-2., -1.]]->ArraySt.map(Vector.create)
-
-//   let labels = [[1.]]->ArraySt.map(Vector.create)
-
-//   checkGradient(data[0], labels[0])
-// }
 
 let features = features->_zeroMean
 

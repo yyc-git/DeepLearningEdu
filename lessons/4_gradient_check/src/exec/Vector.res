@@ -72,3 +72,7 @@ let getExn = (vec, index) => {
 let push = (vec, value) => {
   vec->ArraySt.sliceFrom(0)->ArraySt.push(value)
 }
+
+let toArray = vec => {
+  vec
+}

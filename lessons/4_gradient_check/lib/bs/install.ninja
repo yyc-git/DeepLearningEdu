@@ -1,0 +1,33 @@
+rescript = 1
+rule cp
+  command = cp $i $out
+rule touch
+ command = touch $out
+o Matrix-.cmi : cp ../bs/src/exec/Matrix-.cmi
+o Matrix-.cmj : cp ../bs/src/exec/Matrix-.cmj
+o Matrix-.cmt : cp ../bs/src/exec/Matrix-.cmt
+o Matrix.res : cp ../../src/exec/Matrix.res
+o Vector-.cmi : cp ../bs/src/exec/Vector-.cmi
+o Vector-.cmj : cp ../bs/src/exec/Vector-.cmj
+o Vector-.cmt : cp ../bs/src/exec/Vector-.cmt
+o Vector.res : cp ../../src/exec/Vector.res
+o ArraySt-.cmi : cp ../bs/src/exec/ArraySt-.cmi
+o ArraySt-.cmj : cp ../bs/src/exec/ArraySt-.cmj
+o ArraySt-.cmt : cp ../bs/src/exec/ArraySt-.cmt
+o ArraySt.res : cp ../../src/exec/ArraySt.res
+o Exception-.cmi : cp ../bs/src/exec/Exception-.cmi
+o Exception-.cmj : cp ../bs/src/exec/Exception-.cmj
+o Exception-.cmt : cp ../bs/src/exec/Exception-.cmt
+o Exception.res : cp ../../src/exec/Exception.res
+o MatrixUtils-.cmi : cp ../bs/src/exec/MatrixUtils-.cmi
+o MatrixUtils-.cmj : cp ../bs/src/exec/MatrixUtils-.cmj
+o MatrixUtils-.cmt : cp ../bs/src/exec/MatrixUtils-.cmt
+o MatrixUtils.res : cp ../../src/exec/MatrixUtils.res
+o LinearLayer_test-.cmi : cp ../bs/src/exec/LinearLayer_test-.cmi
+o LinearLayer_test-.cmj : cp ../bs/src/exec/LinearLayer_test-.cmj
+o LinearLayer_test-.cmt : cp ../bs/src/exec/LinearLayer_test-.cmt
+o LinearLayer_test.res : cp ../../src/exec/LinearLayer_test.res
+o .cmi : cp ../bs.cmi
+o .cmj : cp ../bs.cmj
+o .cmt : cp ../bs.cmt
+build install.stamp : touch Matrix-.cmi Matrix-.cmj Vector-.cmi Vector-.cmj ArraySt-.cmi ArraySt-.cmj Exception-.cmi Exception-.cmj MatrixUtils-.cmi MatrixUtils-.cmj LinearLayer_test-.cmi LinearLayer_test-.cmj .cmi .cmj
