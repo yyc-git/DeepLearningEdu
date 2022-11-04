@@ -62,26 +62,6 @@ let backward = (
   inputVector: Vector.t,
   state: state,
 ): (layer2Gradient, layer3Gradient) => {
-  // let d_E_d_y5 = -2. /. n *. (label -. y5)
-
-  // let d_y_net5 = _deriv_Sigmoid(layer3Net->Vector.getExn(0))
-
-  // let y5_delta = d_E_d_y5 *. d_y_net5
-
-  // let layer3Delta = Vector.create([y5_delta])
-
-  // let d_y_net3 = _deriv_Sigmoid(layer2Net->Vector.getExn(0))
-
-  // let y3_delta =
-  //   y5_delta *. MatrixUtils.getValue(0, 0, state.wMatrixBetweenLayer2Layer3) *. d_y_net3
-
-  // let d_y_net4 = _deriv_Sigmoid(layer2Net->Vector.getExn(1))
-
-  // let y4_delta =
-  //   y5_delta *. MatrixUtils.getValue(0, 1, state.wMatrixBetweenLayer2Layer3) *. d_y_net4
-
-  // let layer2Delta = Vector.create([y3_delta, y4_delta])
-
   let layer3Delta = layer3OutputVector->Vector.mapi((layer3OutputValue, i) => {
     let d_E_d_value = -2. /. n *. (label -. layer3OutputValue)
 
