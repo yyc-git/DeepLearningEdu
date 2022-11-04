@@ -55,8 +55,9 @@ function backward(param, n, label, inputVector, state) {
   var match = param[1];
   var layer3Net = match[0];
   var match$1 = param[0];
+  var labelVector = Vector$Gender_analyze.create([label]);
   var layer3Delta = Vector$Gender_analyze.mapi(match[1], (function (layer3OutputValue, i) {
-          var d_E_d_value = -2 / n * (label - layer3OutputValue);
+          var d_E_d_value = -2 / n * (Vector$Gender_analyze.getExn(labelVector, i) - layer3OutputValue);
           var d_y_net_value = _deriv_Sigmoid(Vector$Gender_analyze.getExn(layer3Net, i));
           return d_E_d_value * d_y_net_value;
         }));

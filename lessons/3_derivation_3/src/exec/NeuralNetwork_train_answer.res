@@ -62,8 +62,10 @@ let backward = (
   inputVector: Vector.t,
   state: state,
 ): (layer2Gradient, layer3Gradient) => {
+  let labelVector = Vector.create([label])
+
   let layer3Delta = layer3OutputVector->Vector.mapi((layer3OutputValue, i) => {
-    let d_E_d_value = -2. /. n *. (label -. layer3OutputValue)
+    let d_E_d_value = -2. /. n *. (labelVector -> Vector.getExn(i) -. layer3OutputValue)
 
     let d_y_net_value = _deriv_Sigmoid(layer3Net->Vector.getExn(i))
 
