@@ -1,5 +1,5 @@
 {
-    "name": "",
+    "name": "gender_analyze",
     "sources": [
         {
             "dir": "src",
