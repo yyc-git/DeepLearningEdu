@@ -186,11 +186,7 @@ let train = (state: state, features: array<feature>, labels: array<label>): stat
               features->ArraySt.map(feature => {
                 let inputVector = _createInputVector(feature)
 
-                let (_, (_, layer3OutputVector)) = forward(
-                  _activate_sigmoid,
-                  inputVector,
-                  state,
-                )
+                let (_, (_, layer3OutputVector)) = forward(_activate_sigmoid, inputVector, state)
 
                 // TODO fix
                 let y5 = layer3OutputVector->Vector.getExn(0)
@@ -314,11 +310,7 @@ let checkGradient = (inputVector, labelVector) => {
   }
 
   let _computeErrorForLayer3 = (labelVector, outputVector) =>
-    _computeLoss(
-      // labelVector->Vector.toArray->ArraySt.map(_convertLabelToFloat),
-      labelVector->Vector.toArray,
-      outputVector->Vector.toArray,
-    )
+    _computeLoss(labelVector->Vector.toArray, outputVector->Vector.toArray)
 
   let _computeErrorForLayer2 = outputVector => {
     outputVector->Vector.sum
@@ -334,11 +326,7 @@ let checkGradient = (inputVector, labelVector) => {
 
   let n = 1.0
 
-  // let (layer2Delta, layer3Delta) = forwardOutput->backward(n, label, inputVector, state)
-
   let layer3Delta = _bpLayer3Delta(_deriv_sigmoid, layer3Net, layer3OutputVector, n, labelVector)
-
-  // let layer2Delta = _bpLayer2Delta(layer2Net, layer3Delta, state)
 
   /* ! check layer3 */
 
@@ -398,45 +386,3 @@ let testCheckGradient = () => {
 Js.log("begin test")
 testCheckGradient()->ignore
 Js.log("finish test")
-
-// let state = createState(2, 2, 1)
-
-// let features = [
-//   {
-//     weight: 50.,
-//     height: 150.,
-//   },
-//   {
-//     weight: 51.,
-//     height: 149.,
-//   },
-//   {
-//     weight: 60.,
-//     height: 172.,
-//   },
-//   {
-//     weight: 90.,
-//     height: 188.,
-//   },
-// ]
-
-// let labels = [Female, Female, Male, Male]
-
-// let features = features->_zeroMean
-
-// let state = state->train(features, labels)
-
-// let featuresForInference = [
-//   {
-//     weight: 89.,
-//     height: 190.,
-//   },
-//   {
-//     weight: 60.,
-//     height: 155.,
-//   },
-// ]
-
-// featuresForInference->_zeroMean->Js.Array.forEach(feature => {
-//   inference(state, feature)->Js.log
-// }, _)
