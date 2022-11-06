@@ -8,8 +8,12 @@ type data = {
   test: array<element>,
 }
 
+type trainingCount = int
+
+type testCount = int
+
 @module("mnist")
-external set: (int, int) => data = ""
+external set: (trainingCount, testCount) => data = ""
 
 // @module("mnist")
 // external draw: (array<float>, Canvas.context) => unit = ""

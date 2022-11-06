@@ -174,7 +174,7 @@ let _getOutputNumber = outputVector => {
       value >= maxValue ? (value, Some(index)) : (maxValue, maxValueIndex)
     }, (0., None))
 
-  maxValueIndex
+  maxValueIndex->OptionSt.getExn
 }
 
 let _isCorrectInference = (labelVector, predictVector) => {
@@ -191,9 +191,9 @@ let train = (state: state, sampleCount: int): state => {
   // let learnRate = 3.
   let learnRate = 10.
   //   let epochs = 1000
-  //   let epochs = 10
+//   let epochs = 10
   //   let epochs = 2
-  let epochs = 100
+    let epochs = 100
 
   let mnistData = Mnist.set(sampleCount, 1)
 
@@ -294,7 +294,7 @@ let train = (state: state, sampleCount: int): state => {
   }, state)
 }
 
-let inference = (state: state, feature: feature): Vector.t => {
+let inference = (state: state, feature: feature): int => {
   let inputVector = _createInputVector(feature)
 
   let (_, (_, layer3OutputVector)) = forward(
@@ -303,7 +303,7 @@ let inference = (state: state, feature: feature): Vector.t => {
     state,
   )
 
-  layer3OutputVector
+  layer3OutputVector->Log.printForDebug->_getOutputNumber
 }
 
 let state = createState(784, 30, 10)
@@ -312,13 +312,10 @@ let state = createState(784, 30, 10)
 let state = train(state, 10)
 // let state = train(state, 100)
 
-// // Make some predictions
+let mnistData = Mnist.set(0, 10)
 
-// let mnistData = Mnist.set(2, 10)
+let testData = mnistData.test->Mnist.getMnistData
 
-// let testData = mnistData.test->Mnist.getMnistData
+let testLabels = mnistData.test->Mnist.getMnistLabels
 
-// let testLabels = mnistData.test->Mnist.getMnistLabels
-
-// Js.log((NeuralNetwork.predictGetOutput(state, testData[0]), testLabels[0]))
-// Js.log((NeuralNetwork.predictGetOutput(state, testData[1]), testLabels[1]))
+Js.log((inference(state, testData[0]), testLabels[0]->Log.printForDebug->_getOutputNumber))
