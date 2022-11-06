@@ -3,6 +3,10 @@
 0
 bsconfig.json	0x1.8d967547fe9b9p+30
 src	0x1.8d9675487f244p+30
-src/exec	0x1.8d9678c4c30e6p+30
+src/exec	0x1.8d9ca1f7bb42ep+30
+src/exec/output_layer_gradient_check	0x1.8d9c8d2ca1481p+30
+src/exec/linear_layer_gradient_check	0x1.8d9ca111004f4p+30
+src/exec/diff	0x1.8d9c7fbcd4054p+30
+src/exec/hidden_layer_gradient_check	0x1.8d9c8f29f171bp+30
 ===
 /Users/yang/Github/DeepLearningEdu/node_modules/rescript/darwin/rescript.exe	0x1.8d93e27b4ed8dp+30

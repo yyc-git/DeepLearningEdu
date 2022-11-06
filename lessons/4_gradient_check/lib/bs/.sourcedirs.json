@@ -1,1 +1,1 @@
-{ "dirs" : [ "src" , "src/exec" ] , "pkgs" : [ [ "gentype" , "/Users/yang/Github/DeepLearningEdu/node_modules/gentype" ] ] , "generated" : [] }
+{ "dirs" : [ "src" , "src/exec" , "src/exec/output_layer_gradient_check" , "src/exec/linear_layer_gradient_check" , "src/exec/diff" , "src/exec/hidden_layer_gradient_check" ] , "pkgs" : [ [ "gentype" , "/Users/yang/Github/DeepLearningEdu/node_modules/gentype" ] ] , "generated" : [] }

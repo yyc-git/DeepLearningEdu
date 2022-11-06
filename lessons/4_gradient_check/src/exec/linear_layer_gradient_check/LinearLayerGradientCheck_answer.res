@@ -1,5 +1,3 @@
-// TODO only for test
-
 type state = {
   wMatrixBetweenLayer1Layer2: Matrix.t,
   wMatrixBetweenLayer2Layer3: Matrix.t,

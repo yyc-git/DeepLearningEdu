@@ -4,11 +4,11 @@ rule astj
   command = /Users/yang/Github/DeepLearningEdu/node_modules/rescript/darwin/bsc.exe -w -0-1-2-3-4-7-8-9-10-11-12-13-14-15-16-17-18-19-20-21-22-23-24-25-26-27-28-29-30-31-32-33-34-35-36-37-38-39-40-41-42-43-44-45-46-47-48-49-50-51-52-53-54-55-56-57-58-59-60-61-62-K -warn-error +5+6 -bs-v 9.1.4 -bs-no-version-header -bs-super-errors -absname -bs-ast -o $out $i
 o src/exec/Matrix.ast : astj ../../src/exec/Matrix.res
 rule deps
-  command = /Users/yang/Github/DeepLearningEdu/node_modules/rescript/darwin/bsb_helper.exe -hash 01007ac6c3bab23363779fbdbbfc306f -bs-ns Gender_analyze $in
+  command = /Users/yang/Github/DeepLearningEdu/node_modules/rescript/darwin/bsb_helper.exe -hash 1667cb200c322743c1818c328af88361 -bs-ns Gender_analyze $in
   restat = 1
 o src/exec/Matrix.d : deps src/exec/Matrix.ast
 rule mij
-  command = /Users/yang/Github/DeepLearningEdu/node_modules/rescript/darwin/bsc.exe -bs-ns Gender_analyze -I . -I src/exec -I src -bs-no-version-header -bs-super-errors -w -0-1-2-3-4-7-8-9-10-11-12-13-14-15-16-17-18-19-20-21-22-23-24-25-26-27-28-29-30-31-32-33-34-35-36-37-38-39-40-41-42-43-44-45-46-47-48-49-50-51-52-53-54-55-56-57-58-59-60-61-62-K -warn-error +5+6 -bs-gentype /Users/yang/Github/DeepLearningEdu/node_modules/gentype/gentype.exe -bs-package-name gender_analyze -bs-package-output commonjs:lib/js/$in_d:.bs.js -bs-package-output es6-global:lib/es6_global/$in_d:.bs.js $i
+  command = /Users/yang/Github/DeepLearningEdu/node_modules/rescript/darwin/bsc.exe -bs-ns Gender_analyze -I . -I src/exec/hidden_layer_gradient_check -I src/exec/diff -I src/exec/linear_layer_gradient_check -I src/exec/output_layer_gradient_check -I src/exec -I src -bs-no-version-header -bs-super-errors -w -0-1-2-3-4-7-8-9-10-11-12-13-14-15-16-17-18-19-20-21-22-23-24-25-26-27-28-29-30-31-32-33-34-35-36-37-38-39-40-41-42-43-44-45-46-47-48-49-50-51-52-53-54-55-56-57-58-59-60-61-62-K -warn-error +5+6 -bs-gentype /Users/yang/Github/DeepLearningEdu/node_modules/gentype/gentype.exe -bs-package-name gender_analyze -bs-package-output commonjs:lib/js/$in_d:.bs.js -bs-package-output es6-global:lib/es6_global/$in_d:.bs.js $i
   dyndep = 1
   restat = 1
 o src/exec/Matrix-Gender_analyze.cmj src/exec/Matrix-Gender_analyze.cmi ../es6_global/src/exec/Matrix.bs.js ../js/src/exec/Matrix.bs.js : mij src/exec/Matrix.ast
@@ -27,9 +27,42 @@ o src/exec/FloatUtils-Gender_analyze.cmj src/exec/FloatUtils-Gender_analyze.cmi 
 o src/exec/MatrixUtils.ast : astj ../../src/exec/MatrixUtils.res
 o src/exec/MatrixUtils.d : deps src/exec/MatrixUtils.ast
 o src/exec/MatrixUtils-Gender_analyze.cmj src/exec/MatrixUtils-Gender_analyze.cmi ../es6_global/src/exec/MatrixUtils.bs.js ../js/src/exec/MatrixUtils.bs.js : mij src/exec/MatrixUtils.ast
-o src/exec/LinearLayer_test.ast : astj ../../src/exec/LinearLayer_test.res
-o src/exec/LinearLayer_test.d : deps src/exec/LinearLayer_test.ast
-o src/exec/LinearLayer_test-Gender_analyze.cmj src/exec/LinearLayer_test-Gender_analyze.cmi ../es6_global/src/exec/LinearLayer_test.bs.js ../js/src/exec/LinearLayer_test.bs.js : mij src/exec/LinearLayer_test.ast
+o src/exec/output_layer_gradient_check/OutputLayerGradientCheck.ast : astj ../../src/exec/output_layer_gradient_check/OutputLayerGradientCheck.res
+o src/exec/output_layer_gradient_check/OutputLayerGradientCheck.d : deps src/exec/output_layer_gradient_check/OutputLayerGradientCheck.ast
+o src/exec/output_layer_gradient_check/OutputLayerGradientCheck-Gender_analyze.cmj src/exec/output_layer_gradient_check/OutputLayerGradientCheck-Gender_analyze.cmi ../es6_global/src/exec/output_layer_gradient_check/OutputLayerGradientCheck.bs.js ../js/src/exec/output_layer_gradient_check/OutputLayerGradientCheck.bs.js : mij src/exec/output_layer_gradient_check/OutputLayerGradientCheck.ast
+o src/exec/output_layer_gradient_check/OutputLayerGradientCheck_answer.ast : astj ../../src/exec/output_layer_gradient_check/OutputLayerGradientCheck_answer.res
+o src/exec/output_layer_gradient_check/OutputLayerGradientCheck_answer.d : deps src/exec/output_layer_gradient_check/OutputLayerGradientCheck_answer.ast
+o src/exec/output_layer_gradient_check/OutputLayerGradientCheck_answer-Gender_analyze.cmj src/exec/output_layer_gradient_check/OutputLayerGradientCheck_answer-Gender_analyze.cmi ../es6_global/src/exec/output_layer_gradient_check/OutputLayerGradientCheck_answer.bs.js ../js/src/exec/output_layer_gradient_check/OutputLayerGradientCheck_answer.bs.js : mij src/exec/output_layer_gradient_check/OutputLayerGradientCheck_answer.ast
+o src/exec/linear_layer_gradient_check/LinearLayerGradientCheck.ast : astj ../../src/exec/linear_layer_gradient_check/LinearLayerGradientCheck.res
+o src/exec/linear_layer_gradient_check/LinearLayerGradientCheck.d : deps src/exec/linear_layer_gradient_check/LinearLayerGradientCheck.ast
+o src/exec/linear_layer_gradient_check/LinearLayerGradientCheck-Gender_analyze.cmj src/exec/linear_layer_gradient_check/LinearLayerGradientCheck-Gender_analyze.cmi ../es6_global/src/exec/linear_layer_gradient_check/LinearLayerGradientCheck.bs.js ../js/src/exec/linear_layer_gradient_check/LinearLayerGradientCheck.bs.js : mij src/exec/linear_layer_gradient_check/LinearLayerGradientCheck.ast
+o src/exec/linear_layer_gradient_check/LinearLayerGradientCheck_answer.ast : astj ../../src/exec/linear_layer_gradient_check/LinearLayerGradientCheck_answer.res
+o src/exec/linear_layer_gradient_check/LinearLayerGradientCheck_answer.d : deps src/exec/linear_layer_gradient_check/LinearLayerGradientCheck_answer.ast
+o src/exec/linear_layer_gradient_check/LinearLayerGradientCheck_answer-Gender_analyze.cmj src/exec/linear_layer_gradient_check/LinearLayerGradientCheck_answer-Gender_analyze.cmi ../es6_global/src/exec/linear_layer_gradient_check/LinearLayerGradientCheck_answer.bs.js ../js/src/exec/linear_layer_gradient_check/LinearLayerGradientCheck_answer.bs.js : mij src/exec/linear_layer_gradient_check/LinearLayerGradientCheck_answer.ast
+o src/exec/diff/Diff1.ast : astj ../../src/exec/diff/Diff1.res
+o src/exec/diff/Diff1.d : deps src/exec/diff/Diff1.ast
+o src/exec/diff/Diff1-Gender_analyze.cmj src/exec/diff/Diff1-Gender_analyze.cmi ../es6_global/src/exec/diff/Diff1.bs.js ../js/src/exec/diff/Diff1.bs.js : mij src/exec/diff/Diff1.ast
+o src/exec/diff/Diff2.ast : astj ../../src/exec/diff/Diff2.res
+o src/exec/diff/Diff2.d : deps src/exec/diff/Diff2.ast
+o src/exec/diff/Diff2-Gender_analyze.cmj src/exec/diff/Diff2-Gender_analyze.cmi ../es6_global/src/exec/diff/Diff2.bs.js ../js/src/exec/diff/Diff2.bs.js : mij src/exec/diff/Diff2.ast
+o src/exec/diff/Diff1_answer.ast : astj ../../src/exec/diff/Diff1_answer.res
+o src/exec/diff/Diff1_answer.d : deps src/exec/diff/Diff1_answer.ast
+o src/exec/diff/Diff1_answer-Gender_analyze.cmj src/exec/diff/Diff1_answer-Gender_analyze.cmi ../es6_global/src/exec/diff/Diff1_answer.bs.js ../js/src/exec/diff/Diff1_answer.bs.js : mij src/exec/diff/Diff1_answer.ast
+o src/exec/diff/Diff2_answer.ast : astj ../../src/exec/diff/Diff2_answer.res
+o src/exec/diff/Diff2_answer.d : deps src/exec/diff/Diff2_answer.ast
+o src/exec/diff/Diff2_answer-Gender_analyze.cmj src/exec/diff/Diff2_answer-Gender_analyze.cmi ../es6_global/src/exec/diff/Diff2_answer.bs.js ../js/src/exec/diff/Diff2_answer.bs.js : mij src/exec/diff/Diff2_answer.ast
+o src/exec/diff/Diff1_compute_answer.ast : astj ../../src/exec/diff/Diff1_compute_answer.res
+o src/exec/diff/Diff1_compute_answer.d : deps src/exec/diff/Diff1_compute_answer.ast
+o src/exec/diff/Diff1_compute_answer-Gender_analyze.cmj src/exec/diff/Diff1_compute_answer-Gender_analyze.cmi ../es6_global/src/exec/diff/Diff1_compute_answer.bs.js ../js/src/exec/diff/Diff1_compute_answer.bs.js : mij src/exec/diff/Diff1_compute_answer.ast
+o src/exec/diff/Diff2_compute_answer.ast : astj ../../src/exec/diff/Diff2_compute_answer.res
+o src/exec/diff/Diff2_compute_answer.d : deps src/exec/diff/Diff2_compute_answer.ast
+o src/exec/diff/Diff2_compute_answer-Gender_analyze.cmj src/exec/diff/Diff2_compute_answer-Gender_analyze.cmi ../es6_global/src/exec/diff/Diff2_compute_answer.bs.js ../js/src/exec/diff/Diff2_compute_answer.bs.js : mij src/exec/diff/Diff2_compute_answer.ast
+o src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck.ast : astj ../../src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck.res
+o src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck.d : deps src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck.ast
+o src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck-Gender_analyze.cmj src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck-Gender_analyze.cmi ../es6_global/src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck.bs.js ../js/src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck.bs.js : mij src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck.ast
+o src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck_answer.ast : astj ../../src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck_answer.res
+o src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck_answer.d : deps src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck_answer.ast
+o src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck_answer-Gender_analyze.cmj src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck_answer-Gender_analyze.cmi ../es6_global/src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck_answer.bs.js ../js/src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck_answer.bs.js : mij src/exec/hidden_layer_gradient_check/HiddenLayerGradientCheck_answer.ast
 rule build_package
   command = /Users/yang/Github/DeepLearningEdu/node_modules/rescript/darwin/bsc.exe -w -49 -color always -no-alias-deps  $i
   restat = 1

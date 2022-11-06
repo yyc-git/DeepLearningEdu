@@ -75,6 +75,19 @@ function push(vec, value) {
   return ArraySt$Gender_analyze.push(ArraySt$Gender_analyze.sliceFrom(vec, 0), value);
 }
 
+function reducei(vec, func) {
+  return function (param) {
+    return ArraySt$Gender_analyze.reduceOneParami(vec, func, param);
+  };
+}
+
+function sum(vec) {
+  var func = function (result, value, param) {
+    return result + value;
+  };
+  return ArraySt$Gender_analyze.reduceOneParami(vec, func, 0);
+}
+
 function toArray(vec) {
   return vec;
 }
@@ -94,6 +107,8 @@ export {
   forEachi ,
   getExn ,
   push ,
+  reducei ,
+  sum ,
   toArray ,
   
 }
