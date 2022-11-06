@@ -27,8 +27,8 @@ let _createWMatrix = (getValue, firstLayerNodeCount, secondLayerNodeCount) => {
 }
 
 let createState = (layer1NodeCount, layer2NodeCount, layer3NodeCount): state => {
-    wMatrixBetweenLayer1Layer2: _createWMatrix(Js.Math.random, layer1NodeCount, layer2NodeCount),
-    wMatrixBetweenLayer2Layer3: _createWMatrix(Js.Math.random, layer2NodeCount, layer3NodeCount),
+  wMatrixBetweenLayer1Layer2: _createWMatrix(Js.Math.random, layer1NodeCount, layer2NodeCount),
+  wMatrixBetweenLayer2Layer3: _createWMatrix(Js.Math.random, layer2NodeCount, layer3NodeCount),
 }
 
 let _activate_sigmoid = x => {
@@ -61,14 +61,13 @@ let _handleInputToAvoidTooLargeForSigmoid = (input, max) => {
 }
 
 let _forwardLayer2 = (activate, inputVector, state) => {
-  let layerNet = Vector.transformMatrix(state.wMatrixBetweenLayer1Layer2, inputVector)
+  let layerNet =
+    Vector.transformMatrix(
+      state.wMatrixBetweenLayer1Layer2,
+      inputVector,
+    )->_handleInputToAvoidTooLargeForSigmoid(Matrix.getColCount(state.wMatrixBetweenLayer1Layer2))
 
-  let layerOutputVector =
-    layerNet
-    ->_handleInputToAvoidTooLargeForSigmoid(Matrix.getColCount(state.wMatrixBetweenLayer1Layer2))
-    // ->Log.printForDebug
-    ->Vector.map(activate)
-  // ->Log.printForDebug
+  let layerOutputVector = layerNet->Vector.map(activate)
 
   (layerNet, layerOutputVector)
 }
@@ -78,14 +77,9 @@ let _forwardLayer3 = (activate, layer2OutputVector, state) => {
     state.wMatrixBetweenLayer2Layer3,
     /* ! 注意：此处push 1.0 */
     layer2OutputVector->Vector.push(1.0),
-  )
+  )->_handleInputToAvoidTooLargeForSigmoid(Matrix.getColCount(state.wMatrixBetweenLayer2Layer3))
 
-  let layerOutputVector =
-    layerNet
-    ->_handleInputToAvoidTooLargeForSigmoid(Matrix.getColCount(state.wMatrixBetweenLayer2Layer3))
-    // ->Log.printForDebug
-    ->Vector.map(activate)
-  // ->Log.printForDebug
+  let layerOutputVector = layerNet->Vector.map(activate)
 
   (layerNet, layerOutputVector)
 }
@@ -193,12 +187,13 @@ let _getCorrectRate = (correctCount, errorCount) => {
 }
 
 let train = (state: state, sampleCount: int): state => {
-  let learnRate = 0.1
-  //   let learnRate = 3.
+  //   let learnRate = 0.1
+  // let learnRate = 3.
+  let learnRate = 10.
   //   let epochs = 1000
-  let epochs = 10
+  //   let epochs = 10
   //   let epochs = 2
-  // let epochs = 100
+  let epochs = 100
 
   let mnistData = Mnist.set(sampleCount, 1)
 
@@ -237,6 +232,17 @@ let train = (state: state, sampleCount: int): state => {
 
         let (layer2Gradient, layer3Gradient) =
           forwardOutput->backward(n, labelVector, inputVector, state)
+
+        // Js.log(layer3Gradient)
+
+        // DebugUtils.checkWeightMatrixAndGradientMatrixRadio(
+        //   state.wMatrixBetweenLayer1Layer2,
+        //   Matrix.multiplyScalar(learnRate, layer2Gradient),
+        // )
+        //   DebugUtils.checkWeightMatrixAndGradientMatrixRadio(
+        // state.wMatrixBetweenLayer2Layer3,
+        //   Matrix.multiplyScalar(learnRate, layer3Gradient),
+        //   )
 
         (
           {
@@ -302,8 +308,8 @@ let inference = (state: state, feature: feature): Vector.t => {
 
 let state = createState(784, 30, 10)
 
-let state = train(state, 200)
-// let state = train(state, 10)
+// let state = train(state, 200)
+let state = train(state, 10)
 // let state = train(state, 100)
 
 // // Make some predictions

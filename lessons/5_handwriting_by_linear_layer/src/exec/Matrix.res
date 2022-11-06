@@ -75,3 +75,11 @@ let sub = ((row1, col1, data1), (row2, col2, data2)) => {
         (row1, col1, data1->ArraySt.mapi((v, i) => v -. data2[i]))
       }
 }
+
+let map = (matrix, func) => {
+  (getRowCount(matrix), getColCount(matrix), getData(matrix)->ArraySt.map(func))
+}
+
+let mapi = (matrix, func) => {
+  (getRowCount(matrix), getColCount(matrix), getData(matrix)->ArraySt.mapi(func))
+}
