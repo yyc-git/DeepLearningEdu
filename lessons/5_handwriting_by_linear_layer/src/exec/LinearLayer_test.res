@@ -31,16 +31,22 @@ let createState = (layer1NodeCount, layer2NodeCount, layer3NodeCount): state => 
   wMatrixBetweenLayer2Layer3: _createWMatrix(Js.Math.random, layer2NodeCount, layer3NodeCount),
 }
 
-let _activate_sigmoid = x => {
-  1. /. (1. +. Js.Math.exp(-.x))
-  // x
+let _handleInputValueToAvoidTooLargeForSigmoid = (inputValue, max) => {
+  inputValue /. (max->Obj.magic /. 10.)
 }
 
-let _deriv_sigmoid = x => {
-  let fx = _activate_sigmoid(x)
+let _activate_sigmoid = (max, x) => {
+  let x = x->_handleInputValueToAvoidTooLargeForSigmoid(max)
+
+  DebugUtils.checkSigmoidInputTooLarge(x)
+
+  1. /. (1. +. Js.Math.exp(-.x))
+}
+
+let _deriv_sigmoid = (max, x) => {
+  let fx = _activate_sigmoid(max, x)
 
   fx *. (1. -. fx)
-  // 1.0
 }
 
 let _activate_linear = x => {
@@ -51,21 +57,8 @@ let _deriv_linear = x => {
   1.0
 }
 
-let _handleInputToAvoidTooLargeForSigmoid = (input, max) => {
-  input->(
-    x =>
-      x->ArraySt.map(v => {
-        v /. (max->Obj.magic /. 10.)
-      })
-  )
-}
-
 let _forwardLayer2 = (activate, inputVector, state) => {
-  let layerNet =
-    Vector.transformMatrix(
-      state.wMatrixBetweenLayer1Layer2,
-      inputVector,
-    )->_handleInputToAvoidTooLargeForSigmoid(Matrix.getColCount(state.wMatrixBetweenLayer1Layer2))
+  let layerNet = Vector.transformMatrix(state.wMatrixBetweenLayer1Layer2, inputVector)
 
   let layerOutputVector = layerNet->Vector.map(activate)
 
@@ -77,7 +70,7 @@ let _forwardLayer3 = (activate, layer2OutputVector, state) => {
     state.wMatrixBetweenLayer2Layer3,
     /* ! 注意：此处push 1.0 */
     layer2OutputVector->Vector.push(1.0),
-  )->_handleInputToAvoidTooLargeForSigmoid(Matrix.getColCount(state.wMatrixBetweenLayer2Layer3))
+  )
 
   let layerOutputVector = layerNet->Vector.map(activate)
 
@@ -128,9 +121,20 @@ let backward = (
   inputVector: Vector.t,
   state: state,
 ): (layer2Gradient, layer3Gradient) => {
-  let layer3Delta = _bpLayer3Delta(_deriv_sigmoid, layer3Net, layer3OutputVector, n, labelVector)
+  let layer3Delta = _bpLayer3Delta(
+    _deriv_sigmoid(Matrix.getColCount(state.wMatrixBetweenLayer2Layer3)),
+    layer3Net,
+    layer3OutputVector,
+    n,
+    labelVector,
+  )
 
-  let layer2Delta = _bpLayer2Delta(_deriv_sigmoid, layer2Net, layer3Delta, state)
+  let layer2Delta = _bpLayer2Delta(
+    _deriv_sigmoid(Matrix.getColCount(state.wMatrixBetweenLayer1Layer2)),
+    layer2Net,
+    layer3Delta,
+    state,
+  )
 
   let layer2Gradient = Matrix.multiply(
     Matrix.create(Vector.length(layer2Delta), 1, layer2Delta),
@@ -192,7 +196,7 @@ let train = (state: state, sampleCount: int): state => {
   let learnRate = 10.
   //   let epochs = 1000
   //   let epochs = 10
-    // let epochs = 1
+  // let epochs = 1
   let epochs = 100
   // let epochs = 80
 
@@ -226,7 +230,10 @@ let train = (state: state, sampleCount: int): state => {
         let inputVector = _createInputVector(feature)
 
         let (_, (_, layer3OutputVector)) as forwardOutput = forward(
-          (_activate_sigmoid, _activate_sigmoid),
+          (
+            _activate_sigmoid(Matrix.getColCount(state.wMatrixBetweenLayer1Layer2)),
+            _activate_sigmoid(Matrix.getColCount(state.wMatrixBetweenLayer2Layer3)),
+          ),
           inputVector,
           state,
         )
@@ -265,28 +272,6 @@ let train = (state: state, sampleCount: int): state => {
     // mod(epoch, 10) == 0
     true
       ? {
-          // Js.log(state)
-          //   Js.log((
-          //     "loss: ",
-          //     _computeLoss(
-          //       labels->ArraySt.map(_convertLabelToFloat),
-          //       features->ArraySt.map(feature => {
-          //         let inputVector = _createInputVector(feature)
-
-          //         let (_, (_, layer3OutputVector)) = forward(
-          //           (_activate_sigmoid, _activate_sigmoid),
-          //           inputVector,
-          //           state,
-          //         )
-
-          //         // TODO fix
-          //         let y5 = layer3OutputVector->Vector.getExn(0)
-
-          //         y5
-          //       }),
-          //     ),
-          //   ))
-
           Js.log(("getCorrectRate:", _getCorrectRate(correctCount, errorCount)))
 
           state
@@ -299,7 +284,10 @@ let inference = (state: state, feature: feature) => {
   let inputVector = _createInputVector(feature)
 
   let (_, (_, layer3OutputVector)) = forward(
-    (_activate_sigmoid, _activate_sigmoid),
+    (
+      _activate_sigmoid(Matrix.getColCount(state.wMatrixBetweenLayer1Layer2)),
+      _activate_sigmoid(Matrix.getColCount(state.wMatrixBetweenLayer2Layer3)),
+    ),
     inputVector,
     state,
   )
@@ -313,13 +301,11 @@ let inferenceWithSampleCount = (state: state, sampleCount: int) => {
 
   // let testData = mnistData.test->Mnist.getMnistData->ArraySt.sliceFrom(-8)
 
-
   // let testLabels = mnistData.test->Mnist.getMnistLabels->ArraySt.sliceFrom(-8)
 
   let testData = mnistData.test->Mnist.getMnistData
 
   let testLabels = mnistData.test->Mnist.getMnistLabels
-
 
   let (correctCount, errorCount) =
     testData->ArraySt.reduceOneParami((. (correctCount, errorCount), data, i) => {
