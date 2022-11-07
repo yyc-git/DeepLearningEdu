@@ -10,9 +10,9 @@ type state = {
 
 type feature = array<float>
 
-// type label =
-//   | Male
-//   | Female
+type label =
+  | Male
+  | Female
 
 type forwardOutput = ((Vector.t, Vector.t), (Vector.t, Vector.t))
 
@@ -31,20 +31,24 @@ let createState = (layer1NodeCount, layer2NodeCount, layer3NodeCount): state => 
   wMatrixBetweenLayer2Layer3: _createWMatrix(Js.Math.random, layer2NodeCount, layer3NodeCount),
 }
 
-let _handleInputValueToAvoidTooLargeForSigmoid = (inputValue, max) => {
+// let _handleInputValueToAvoidTooLargeForSigmoid = (inputValue, max) => {
+//   inputValue /. (max->Obj.magic /. 10.)
+// }
+
+let _handleInputValueToAvoidTooLargeForSigmoid = (max, inputValue) => {
   inputValue /. (max->Obj.magic /. 10.)
 }
 
-let _activate_sigmoid = (max, x) => {
-  let x = x->_handleInputValueToAvoidTooLargeForSigmoid(max)
+let _activate_sigmoid = (handleInputValueToAvoidTooLargeForSigmoid, x) => {
+  let x = x->handleInputValueToAvoidTooLargeForSigmoid
 
   DebugUtils.checkSigmoidInputTooLarge(x)
 
   1. /. (1. +. Js.Math.exp(-.x))
 }
 
-let _deriv_sigmoid = (max, x) => {
-  let fx = _activate_sigmoid(max, x)
+let _deriv_sigmoid = (handleInputValueToAvoidTooLargeForSigmoid, x) => {
+  let fx = _activate_sigmoid(handleInputValueToAvoidTooLargeForSigmoid, x)
 
   fx *. (1. -. fx)
 }
@@ -122,7 +126,11 @@ let backward = (
   state: state,
 ): (layer2Gradient, layer3Gradient) => {
   let layer3Delta = _bpLayer3Delta(
-    _deriv_sigmoid(Matrix.getColCount(state.wMatrixBetweenLayer2Layer3)),
+    _deriv_sigmoid(
+      _handleInputValueToAvoidTooLargeForSigmoid(
+        Matrix.getColCount(state.wMatrixBetweenLayer2Layer3),
+      ),
+    ),
     layer3Net,
     layer3OutputVector,
     n,
@@ -130,7 +138,11 @@ let backward = (
   )
 
   let layer2Delta = _bpLayer2Delta(
-    _deriv_sigmoid(Matrix.getColCount(state.wMatrixBetweenLayer1Layer2)),
+    _deriv_sigmoid(
+      _handleInputValueToAvoidTooLargeForSigmoid(
+        Matrix.getColCount(state.wMatrixBetweenLayer1Layer2),
+      ),
+    ),
     layer2Net,
     layer3Delta,
     state,
@@ -152,11 +164,11 @@ let backward = (
   (layer2Gradient, layer3Gradient)
 }
 
-// let _convertLabelToFloat = label =>
-//   switch label {
-//   | Male => 0.
-//   | Female => 1.
-//   }
+let _convertLabelToFloat = label =>
+  switch label {
+  | Male => 0.
+  | Female => 1.
+  }
 
 let _computeLoss = (labels, outputs) => {
   labels->ArraySt.reduceOneParami((. result, label, i) => {
@@ -231,8 +243,16 @@ let train = (state: state, sampleCount: int): state => {
 
         let (_, (_, layer3OutputVector)) as forwardOutput = forward(
           (
-            _activate_sigmoid(Matrix.getColCount(state.wMatrixBetweenLayer1Layer2)),
-            _activate_sigmoid(Matrix.getColCount(state.wMatrixBetweenLayer2Layer3)),
+            _activate_sigmoid(
+              _handleInputValueToAvoidTooLargeForSigmoid(
+                Matrix.getColCount(state.wMatrixBetweenLayer1Layer2),
+              ),
+            ),
+            _activate_sigmoid(
+              _handleInputValueToAvoidTooLargeForSigmoid(
+                Matrix.getColCount(state.wMatrixBetweenLayer2Layer3),
+              ),
+            ),
           ),
           inputVector,
           state,
@@ -285,8 +305,16 @@ let inference = (state: state, feature: feature) => {
 
   let (_, (_, layer3OutputVector)) = forward(
     (
-      _activate_sigmoid(Matrix.getColCount(state.wMatrixBetweenLayer1Layer2)),
-      _activate_sigmoid(Matrix.getColCount(state.wMatrixBetweenLayer2Layer3)),
+      _activate_sigmoid(
+        _handleInputValueToAvoidTooLargeForSigmoid(
+          Matrix.getColCount(state.wMatrixBetweenLayer1Layer2),
+        ),
+      ),
+      _activate_sigmoid(
+        _handleInputValueToAvoidTooLargeForSigmoid(
+          Matrix.getColCount(state.wMatrixBetweenLayer2Layer3),
+        ),
+      ),
     ),
     inputVector,
     state,
@@ -316,6 +344,206 @@ let inferenceWithSampleCount = (state: state, sampleCount: int) => {
 
   _getCorrectRate(correctCount, errorCount)
 }
+
+let _emptyHandleInputValueToAvoidTooLargeForSigmoid = inputValue => {
+  inputValue
+}
+
+let checkGradient = (inputVector, labelVector) => {
+  let _checkWeight = (
+    (
+      computeError,
+      layer2Activate,
+      layer3Activate,
+      updateWMatrixByAddEpsilon,
+      updateWMatrixBySubEpsilon,
+    ),
+    delta,
+    (inputVector, previousLayerNodeOutput),
+    state,
+  ) => {
+    let actualGradient = delta *. previousLayerNodeOutput
+
+    let epsilon = 10e-4
+
+    let newState1 = updateWMatrixByAddEpsilon(state, epsilon)
+
+    let (_, (_, layer3OutputVector)) = forward(
+      (layer2Activate, layer3Activate),
+      inputVector,
+      newState1,
+    )
+
+    let error1 = computeError(layer3OutputVector)
+
+    let newState2 = updateWMatrixBySubEpsilon(state, epsilon)
+
+    let (_, (_, layer3OutputVector)) = forward(
+      (layer2Activate, layer3Activate),
+      inputVector,
+      newState2,
+    )
+
+    let error2 = computeError(layer3OutputVector)
+
+    let expectedGradient = (error1 -. error2) /. (2. *. epsilon)
+
+    Js.log((
+      "check gradient: ",
+      // expectedGradient,
+      // actualGradient,
+      // delta,
+      // previousLayerNodeOutput,
+      FloatUtils.truncateFloatValue(expectedGradient, 4) ==
+        FloatUtils.truncateFloatValue(actualGradient, 4),
+    ))
+  }
+
+  let _check = (
+    (updateWMatrix, computeError, layer2Activate, layer3Activate, checkWeight),
+    wMatrix,
+    deltaVector,
+    inputVector,
+    previousLayerOutputVector,
+    state,
+  ) => {
+    wMatrix->Matrix.forEachRow(rowIndex => {
+      wMatrix->Matrix.forEachCol(colIndex => {
+        checkWeight(
+          (
+            computeError,
+            layer2Activate,
+            layer3Activate,
+            (state, epsilon) => {
+              let (row, col, data) = wMatrix
+              let data = data->Js.Array.copy
+
+              data[
+                MatrixUtils.computeIndex(col, rowIndex, colIndex)
+              ] =
+                data[MatrixUtils.computeIndex(col, rowIndex, colIndex)] +. epsilon
+
+              updateWMatrix(state, (row, col, data))
+            },
+            (state, epsilon) => {
+              let (row, col, data) = wMatrix
+              let data = data->Js.Array.copy
+
+              data[
+                MatrixUtils.computeIndex(col, rowIndex, colIndex)
+              ] =
+                data[MatrixUtils.computeIndex(col, rowIndex, colIndex)] -. epsilon
+
+              updateWMatrix(state, (row, col, data))
+            },
+          ),
+          deltaVector[rowIndex],
+          (inputVector, previousLayerOutputVector->Vector.getExn(colIndex)),
+          state,
+        )
+      })
+    })
+  }
+
+  let _computeErrorForLayer3 = (labelVector, outputVector) =>
+    _computeLoss(labelVector->Vector.toArray, outputVector->Vector.toArray)
+
+  let _computeErrorForLayer2 = outputVector => {
+    outputVector->Vector.sum
+  }
+
+  let state = createState(2, 2, 1)
+
+  let ((_, layer2OutputVector), (layer3Net, layer3OutputVector)) = forward(
+    (
+      _activate_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
+      _activate_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
+    ),
+    inputVector,
+    state,
+  )
+
+  let n = 1.0
+
+  let layer3Delta = _bpLayer3Delta(
+    _deriv_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
+    layer3Net,
+    layer3OutputVector,
+    n,
+    labelVector,
+  )
+
+  /* ! check layer3 */
+
+  _check(
+    (
+      (state, wMatrix) => {
+        ...state,
+        wMatrixBetweenLayer2Layer3: wMatrix,
+      },
+      _computeErrorForLayer3(labelVector),
+      _activate_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
+      _activate_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
+      _checkWeight,
+    ),
+    state.wMatrixBetweenLayer2Layer3,
+    layer3Delta,
+    inputVector,
+    layer2OutputVector->Vector.push(1.0),
+    state,
+  )
+
+  /* ! check layer2 */
+
+  let state = createState(2, 2, 1)
+
+  let (layer2Net, _) = _forwardLayer2(
+    _activate_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
+    inputVector,
+    state,
+  )
+
+  let layer3NodeCount = state.wMatrixBetweenLayer2Layer3->Matrix.getRowCount
+  let layer3Delta = ArraySt.range(0, layer3NodeCount - 1)->ArraySt.map(_ => 1.)->Vector.create
+
+  let layer2Delta = _bpLayer2Delta(
+    _deriv_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
+    layer2Net,
+    layer3Delta,
+    state,
+  )
+
+  let layer1OutputVector = inputVector
+
+  _check(
+    (
+      (state, wMatrix) => {
+        ...state,
+        wMatrixBetweenLayer1Layer2: wMatrix,
+      },
+      _computeErrorForLayer2,
+      _activate_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
+      _activate_linear,
+      _checkWeight,
+    ),
+    state.wMatrixBetweenLayer1Layer2,
+    layer2Delta,
+    inputVector,
+    layer1OutputVector,
+    state,
+  )
+}
+
+let testCheckGradient = () => {
+  let inputVector = [-2., -1., 1.]->Vector.create
+  let labelVector = [Female]->Vector.create->Vector.map(_convertLabelToFloat)
+
+  checkGradient(inputVector, labelVector)
+}
+
+Js.log("begin test")
+testCheckGradient()
+Js.log("finish test")
 
 let state = createState(784, 30, 10)
 
