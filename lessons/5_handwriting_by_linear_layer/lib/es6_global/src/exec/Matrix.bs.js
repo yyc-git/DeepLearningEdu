@@ -118,6 +118,22 @@ function sub(param, param$1) {
   }
 }
 
+function map(matrix, func) {
+  return [
+          getRowCount(matrix),
+          getColCount(matrix),
+          ArraySt$Gender_analyze.map(getData(matrix), func)
+        ];
+}
+
+function mapi(matrix, func) {
+  return [
+          getRowCount(matrix),
+          getColCount(matrix),
+          ArraySt$Gender_analyze.mapi(getData(matrix), func)
+        ];
+}
+
 export {
   getData ,
   getRowCount ,
@@ -130,6 +146,8 @@ export {
   multiplyScalar ,
   add ,
   sub ,
+  map ,
+  mapi ,
   
 }
 /* No side effect */

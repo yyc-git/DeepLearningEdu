@@ -191,9 +191,10 @@ let train = (state: state, sampleCount: int): state => {
   // let learnRate = 3.
   let learnRate = 10.
   //   let epochs = 1000
-//   let epochs = 10
-  //   let epochs = 2
-    let epochs = 100
+  //   let epochs = 10
+    // let epochs = 1
+  let epochs = 100
+  // let epochs = 80
 
   let mnistData = Mnist.set(sampleCount, 1)
 
@@ -294,7 +295,7 @@ let train = (state: state, sampleCount: int): state => {
   }, state)
 }
 
-let inference = (state: state, feature: feature): int => {
+let inference = (state: state, feature: feature) => {
   let inputVector = _createInputVector(feature)
 
   let (_, (_, layer3OutputVector)) = forward(
@@ -303,7 +304,31 @@ let inference = (state: state, feature: feature): int => {
     state,
   )
 
-  layer3OutputVector->Log.printForDebug->_getOutputNumber
+  // layer3OutputVector->Log.printForDebug->_getOutputNumber
+  layer3OutputVector
+}
+
+let inferenceWithSampleCount = (state: state, sampleCount: int) => {
+  let mnistData = Mnist.set(0, sampleCount)
+
+  // let testData = mnistData.test->Mnist.getMnistData->ArraySt.sliceFrom(-8)
+
+
+  // let testLabels = mnistData.test->Mnist.getMnistLabels->ArraySt.sliceFrom(-8)
+
+  let testData = mnistData.test->Mnist.getMnistData
+
+  let testLabels = mnistData.test->Mnist.getMnistLabels
+
+
+  let (correctCount, errorCount) =
+    testData->ArraySt.reduceOneParami((. (correctCount, errorCount), data, i) => {
+      _isCorrectInference(testLabels[i]->Vector.create, inference(state, data))
+        ? (correctCount->succ, errorCount)
+        : (correctCount, errorCount->succ)
+    }, (0, 0))->Log.printForDebug
+
+  _getCorrectRate(correctCount, errorCount)
 }
 
 let state = createState(784, 30, 10)
@@ -312,10 +337,4 @@ let state = createState(784, 30, 10)
 let state = train(state, 10)
 // let state = train(state, 100)
 
-let mnistData = Mnist.set(0, 10)
-
-let testData = mnistData.test->Mnist.getMnistData
-
-let testLabels = mnistData.test->Mnist.getMnistLabels
-
-Js.log((inference(state, testData[0]), testLabels[0]->Log.printForDebug->_getOutputNumber))
+Js.log(("inference correctRate:", inferenceWithSampleCount(state, 100)))

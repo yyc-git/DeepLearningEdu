@@ -2,12 +2,13 @@
 
 import * as Curry from "../../../../../../node_modules/rescript/lib/es6/curry.js";
 import * as Mnist from "mnist";
-import * as Caml_obj from "../../../../../../node_modules/rescript/lib/es6/caml_obj.js";
 import * as Caml_array from "../../../../../../node_modules/rescript/lib/es6/caml_array.js";
+import * as Log$Gender_analyze from "./Log.bs.js";
 import * as Mnist$Gender_analyze from "./mnist.bs.js";
 import * as Matrix$Gender_analyze from "./Matrix.bs.js";
 import * as Vector$Gender_analyze from "./Vector.bs.js";
 import * as ArraySt$Gender_analyze from "./ArraySt.bs.js";
+import * as OptionSt$Gender_analyze from "./OptionSt.bs.js";
 import * as MatrixUtils$Gender_analyze from "./MatrixUtils.bs.js";
 
 function _createWMatrix(getValue, firstLayerNodeCount, secondLayerNodeCount) {
@@ -52,8 +53,8 @@ function _handleInputToAvoidTooLargeForSigmoid(input, max) {
 }
 
 function _forwardLayer2(activate, inputVector, state) {
-  var layerNet = Vector$Gender_analyze.transformMatrix(state.wMatrixBetweenLayer1Layer2, inputVector);
-  var layerOutputVector = Vector$Gender_analyze.map(_handleInputToAvoidTooLargeForSigmoid(layerNet, Matrix$Gender_analyze.getColCount(state.wMatrixBetweenLayer1Layer2)), activate);
+  var layerNet = _handleInputToAvoidTooLargeForSigmoid(Vector$Gender_analyze.transformMatrix(state.wMatrixBetweenLayer1Layer2, inputVector), Matrix$Gender_analyze.getColCount(state.wMatrixBetweenLayer1Layer2));
+  var layerOutputVector = Vector$Gender_analyze.map(layerNet, activate);
   return [
           layerNet,
           layerOutputVector
@@ -61,8 +62,8 @@ function _forwardLayer2(activate, inputVector, state) {
 }
 
 function _forwardLayer3(activate, layer2OutputVector, state) {
-  var layerNet = Vector$Gender_analyze.transformMatrix(state.wMatrixBetweenLayer2Layer3, Vector$Gender_analyze.push(layer2OutputVector, 1.0));
-  var layerOutputVector = Vector$Gender_analyze.map(_handleInputToAvoidTooLargeForSigmoid(layerNet, Matrix$Gender_analyze.getColCount(state.wMatrixBetweenLayer2Layer3)), activate);
+  var layerNet = _handleInputToAvoidTooLargeForSigmoid(Vector$Gender_analyze.transformMatrix(state.wMatrixBetweenLayer2Layer3, Vector$Gender_analyze.push(layer2OutputVector, 1.0)), Matrix$Gender_analyze.getColCount(state.wMatrixBetweenLayer2Layer3));
+  var layerOutputVector = Vector$Gender_analyze.map(layerNet, activate);
   return [
           layerNet,
           layerOutputVector
@@ -124,27 +125,28 @@ function _createInputVector(feature) {
 }
 
 function _getOutputNumber(outputVector) {
-  return Vector$Gender_analyze.reducei(outputVector, (function (param, value, index) {
-                    var maxValue = param[0];
-                    if (value >= maxValue) {
-                      return [
-                              value,
-                              index
-                            ];
-                    } else {
-                      return [
-                              maxValue,
-                              param[1]
-                            ];
-                    }
-                  }))([
-                0,
-                undefined
-              ])[1];
+  var match = Vector$Gender_analyze.reducei(outputVector, (function (param, value, index) {
+            var maxValue = param[0];
+            if (value >= maxValue) {
+              return [
+                      value,
+                      index
+                    ];
+            } else {
+              return [
+                      maxValue,
+                      param[1]
+                    ];
+            }
+          }))([
+        0,
+        undefined
+      ]);
+  return OptionSt$Gender_analyze.getExn(match[1]);
 }
 
 function _isCorrectInference(labelVector, predictVector) {
-  return Caml_obj.caml_equal(_getOutputNumber(labelVector), _getOutputNumber(predictVector));
+  return _getOutputNumber(labelVector) === _getOutputNumber(predictVector);
 }
 
 function _getCorrectRate(correctCount, errorCount) {
@@ -156,7 +158,7 @@ function train(state, sampleCount) {
   var features = Mnist$Gender_analyze.getMnistData(mnistData.training);
   var labels = Mnist$Gender_analyze.getMnistLabels(mnistData.training);
   var n = ArraySt$Gender_analyze.length(features);
-  return ArraySt$Gender_analyze.reduceOneParam(ArraySt$Gender_analyze.range(0, 9), (function (state, epoch) {
+  return ArraySt$Gender_analyze.reduceOneParam(ArraySt$Gender_analyze.range(0, 99), (function (state, epoch) {
                 var match = ArraySt$Gender_analyze.reduceOneParami(features, (function (param, feature, i) {
                         var match = param[1];
                         var errorCount = match[1];
@@ -171,8 +173,8 @@ function train(state, sampleCount) {
                         var match$1 = backward(forwardOutput, n, labelVector, inputVector, state);
                         return [
                                 {
-                                  wMatrixBetweenLayer1Layer2: Matrix$Gender_analyze.sub(state.wMatrixBetweenLayer1Layer2, Matrix$Gender_analyze.multiplyScalar(0.1, match$1[0])),
-                                  wMatrixBetweenLayer2Layer3: Matrix$Gender_analyze.sub(state.wMatrixBetweenLayer2Layer3, Matrix$Gender_analyze.multiplyScalar(0.1, match$1[1]))
+                                  wMatrixBetweenLayer1Layer2: Matrix$Gender_analyze.sub(state.wMatrixBetweenLayer1Layer2, Matrix$Gender_analyze.multiplyScalar(10, match$1[0])),
+                                  wMatrixBetweenLayer2Layer3: Matrix$Gender_analyze.sub(state.wMatrixBetweenLayer2Layer3, Matrix$Gender_analyze.multiplyScalar(10, match$1[1]))
                                 },
                                 _isCorrectInference(labelVector, forwardOutput[1][1]) ? [
                                     correctCount + 1 | 0,
@@ -207,9 +209,39 @@ function inference(state, feature) {
   return match[1][1];
 }
 
+function inferenceWithSampleCount(state, sampleCount) {
+  var mnistData = Mnist.set(0, sampleCount);
+  var testData = Mnist$Gender_analyze.getMnistData(mnistData.test);
+  var testLabels = Mnist$Gender_analyze.getMnistLabels(mnistData.test);
+  var match = Log$Gender_analyze.printForDebug(ArraySt$Gender_analyze.reduceOneParami(testData, (function (param, data, i) {
+              var errorCount = param[1];
+              var correctCount = param[0];
+              if (_isCorrectInference(Vector$Gender_analyze.create(Caml_array.get(testLabels, i)), inference(state, data))) {
+                return [
+                        correctCount + 1 | 0,
+                        errorCount
+                      ];
+              } else {
+                return [
+                        correctCount,
+                        errorCount + 1 | 0
+                      ];
+              }
+            }), [
+            0,
+            0
+          ]));
+  return _getCorrectRate(match[0], match[1]);
+}
+
 var state = createState(784, 30, 10);
 
-var state$1 = train(state, 200);
+var state$1 = train(state, 10);
+
+console.log([
+      "inference correctRate:",
+      inferenceWithSampleCount(state$1, 100)
+    ]);
 
 export {
   _createWMatrix ,
@@ -232,6 +264,7 @@ export {
   _getCorrectRate ,
   train ,
   inference ,
+  inferenceWithSampleCount ,
   state$1 as state,
   
 }

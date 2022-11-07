@@ -118,6 +118,22 @@ function sub(param, param$1) {
   }
 }
 
+function map(matrix, func) {
+  return [
+          getRowCount(matrix),
+          getColCount(matrix),
+          ArraySt$Gender_analyze.map(getData(matrix), func)
+        ];
+}
+
+function mapi(matrix, func) {
+  return [
+          getRowCount(matrix),
+          getColCount(matrix),
+          ArraySt$Gender_analyze.mapi(getData(matrix), func)
+        ];
+}
+
 exports.getData = getData;
 exports.getRowCount = getRowCount;
 exports.getColCount = getColCount;
@@ -129,4 +145,6 @@ exports.multiply = multiply;
 exports.multiplyScalar = multiplyScalar;
 exports.add = add;
 exports.sub = sub;
+exports.map = map;
+exports.mapi = mapi;
 /* No side effect */
