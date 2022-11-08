@@ -202,14 +202,21 @@ let _getCorrectRate = (correctCount, errorCount) => {
     ->Obj.magic ++ "%"
 }
 
+let _checkSampleCount = sampleCount => {
+  sampleCount < 10 ? Exception.throwErr("error") : ()
+}
+
 let train = (state: state, sampleCount: int): state => {
+  _checkSampleCount(sampleCount)
+
   //   let learnRate = 0.1
   // let learnRate = 3.
   let learnRate = 10.
   //   let epochs = 1000
   //   let epochs = 10
   // let epochs = 1
-  let epochs = 100
+  // let epochs = 100
+  let epochs = 50
   // let epochs = 80
 
   let mnistData = Mnist.set(sampleCount, 1)
@@ -325,6 +332,8 @@ let inference = (state: state, feature: feature) => {
 }
 
 let inferenceWithSampleCount = (state: state, sampleCount: int) => {
+  _checkSampleCount(sampleCount)
+
   let mnistData = Mnist.set(0, sampleCount)
 
   // let testData = mnistData.test->Mnist.getMnistData->ArraySt.sliceFrom(-8)
