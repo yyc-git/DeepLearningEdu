@@ -349,11 +349,12 @@ let inference = (state: state, feature: feature) => {
           Matrix.getColCount(state.wMatrixBetweenLayer1Layer2),
         ),
       ),
-      _activate_sigmoid(
-        _handleInputVectorToAvoidTooLargeForSigmoid(
-          Matrix.getColCount(state.wMatrixBetweenLayer2Layer3),
-        ),
-      ),
+      // _activate_sigmoid(
+      //   _handleInputVectorToAvoidTooLargeForSigmoid(
+      //     Matrix.getColCount(state.wMatrixBetweenLayer2Layer3),
+      //   ),
+      // ),
+      _activate_softmax,
     ),
     inputVector,
     state,
