@@ -346,6 +346,8 @@ let checkGradient = (inputVector, labelVector) => {
     outputVector->Vector.sum
   }
 
+  /* ! forward + backward to compute layer3 delta */
+
   let state = createState(2, 2, 1)
 
   let ((_, layer2OutputVector), (layer3Net, layer3OutputVector)) = forward(
@@ -378,7 +380,7 @@ let checkGradient = (inputVector, labelVector) => {
     state,
   )
 
-  /* ! check layer2 */
+  /* ! forward + backward to compute layer2 delta */
 
   let state = createState(2, 2, 1)
 
@@ -390,6 +392,8 @@ let checkGradient = (inputVector, labelVector) => {
   let layer2Delta = _bpLayer2Delta(_deriv_sigmoid, layer2Net, layer3Delta, state)
 
   let layer1OutputVector = inputVector
+
+  /* ! check layer2 */
 
   _check(
     (
