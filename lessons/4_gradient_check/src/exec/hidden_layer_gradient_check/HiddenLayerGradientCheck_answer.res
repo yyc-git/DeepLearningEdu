@@ -360,7 +360,8 @@ let checkGradient = (inputVector, labelVector) => {
   let (layer2Net, _) = _forwardLayer2(_activate_sigmoid, inputVector, state)
 
   let layer3NodeCount = state.wMatrixBetweenLayer2Layer3->Matrix.getRowCount
-  let layer3Delta = ArraySt.range(0, layer3NodeCount - 1)->ArraySt.map(_ => 1.)->Vector.create
+  let layer3Delta = ArraySt.range(0, layer3NodeCount - 1)
+  ->ArraySt.map(_ => 1.)->Vector.create
 
   let layer2Delta = _bpLayer2Delta(_deriv_sigmoid, layer2Net, layer3Delta, state)
 
