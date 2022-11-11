@@ -305,7 +305,7 @@ let train = (state: state, sampleCount: int): state => {
     // reduce miniBatchPartitionData
     //   reduce miniBatchData
     //     sum layer2's ,layer3's gradient, correctCount, errorCount, lossSum
-    //   learnRate /. miniBatchSize
+    //   gradient = gradient sum /. miniBatchSize
     //   update layer2's, layer3's wMatrix, correctCount, errorCount, lossSum
 
     /* ! end change */
