@@ -159,6 +159,8 @@ let train = (state: state, sampleCount: int): state => {
   //TODO implement
 
   //TODO 使用正确率替代loss判断是否收敛
+
+  Obj.magic(1)
 }
 
 let state = createState(784, 30, 10)
