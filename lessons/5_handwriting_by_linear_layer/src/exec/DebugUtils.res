@@ -66,5 +66,5 @@ let checkWeightMatrixAndGradientMatrixRadio = (weight, gradient) => {
 // }
 
 let checkSigmoidInputTooLarge = input => {
-  input > 7. ? Js.log({j`input for sigmoid is too large: $input`}) : ()
+  Js.Math.abs_float(input) > 7. ? Js.log({j`input for sigmoid is too large: $input`}) : ()
 }
