@@ -8,7 +8,8 @@
 
 // let _isGradientExplosionOrDisappear = %raw(` (gradient) => { return Number.isNaN(gradient) || (gradient !== 0.0 && Math.abs(gradient) < 0.000000001  )|| !Number.isFinite(gradient) } `)
 // let _isGradientExplosionOrDisappear = %raw(` (gradient) => { return Number.isNaN(gradient) || (gradient !== 0.0 && Math.abs(gradient) < 0.000000001  )|| !Number.isFinite(gradient) || Math.abs(gradient) > 1.0 } `)
-let _isGradientExplosionOrDisappear = %raw(` (gradient) => { return Number.isNaN(gradient) || (gradient !== 0.0 && Math.abs(gradient) < 0.00000001)|| !Number.isFinite(gradient) || Math.abs(gradient) > 1.0 } `)
+// let _isGradientExplosionOrDisappear = %raw(` (gradient) => { return Number.isNaN(gradient) || (gradient !== 0.0 && Math.abs(gradient) < 0.00000001)|| !Number.isFinite(gradient) || Math.abs(gradient) > 1.0 } `)
+let _isGradientExplosionOrDisappear = %raw(` (gradient) => { return Number.isNaN(gradient) || (gradient !== 0.0 && Math.abs(gradient) < 0.0000001)|| !Number.isFinite(gradient) || Math.abs(gradient) > 1.0 } `)
 
 let checkGradientExplosionOrDisappear = gradient => {
   gradient->Matrix.mapi((value, i) => {
