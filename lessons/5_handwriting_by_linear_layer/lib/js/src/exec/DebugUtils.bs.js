@@ -3,7 +3,7 @@
 var Matrix$Gender_analyze = require("./Matrix.bs.js");
 var Vector$Gender_analyze = require("./Vector.bs.js");
 
-var _isGradientExplosionOrDisappear = ((gradient) => { return Number.isNaN(gradient) || (gradient !== 0.0 && Math.abs(gradient) < 0.00000001)|| !Number.isFinite(gradient) || Math.abs(gradient) > 1.0 });
+var _isGradientExplosionOrDisappear = ((gradient) => { return Number.isNaN(gradient) || (gradient !== 0.0 && Math.abs(gradient) < 0.0000001)|| !Number.isFinite(gradient) || Math.abs(gradient) > 1.0 });
 
 function checkGradientExplosionOrDisappear(gradient) {
   return Matrix$Gender_analyze.mapi(gradient, (function (value, i) {
@@ -42,7 +42,7 @@ function checkWeightMatrixAndGradientMatrixRadio(weight, gradient) {
 }
 
 function checkSigmoidInputTooLarge(input) {
-  if (input > 7) {
+  if (Math.abs(input) > 7) {
     console.log("input for sigmoid is too large: " + input);
     return ;
   }

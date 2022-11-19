@@ -3,16 +3,7 @@ type state = {
   wMatrixBetweenLayer2Layer3: Matrix.t,
 }
 
-// type feature = {
-//   weight: float,
-//   height: float,
-// }
-
 type feature = array<float>
-
-type label =
-  | Male
-  | Female
 
 type forwardOutput = ((Vector.t, Vector.t), (Vector.t, Vector.t))
 
@@ -30,10 +21,6 @@ let createState = (layer1NodeCount, layer2NodeCount, layer3NodeCount): state => 
   wMatrixBetweenLayer1Layer2: _createWMatrix(Js.Math.random, layer1NodeCount, layer2NodeCount),
   wMatrixBetweenLayer2Layer3: _createWMatrix(Js.Math.random, layer2NodeCount, layer3NodeCount),
 }
-
-// let _handleInputValueToAvoidTooLargeForSigmoid = (inputValue, max) => {
-//   inputValue /. (max->Obj.magic /. 10.)
-// }
 
 let _handleInputValueToAvoidTooLargeForSigmoid = (max, inputValue) => {
   inputValue /. (max->Obj.magic /. 10.)
@@ -164,22 +151,6 @@ let backward = (
   (layer2Gradient, layer3Gradient)
 }
 
-let _convertLabelToFloat = label =>
-  switch label {
-  | Male => 0.
-  | Female => 1.
-  }
-
-let _computeLoss = (labels, outputs) => {
-  labels->ArraySt.reduceOneParami((. result, label, i) => {
-    result +. Js.Math.pow_float(~base=label -. outputs[i], ~exp=2.0)
-  }, 0.) /. ArraySt.length(labels)->Obj.magic
-}
-
-// let _createInputVector = (feature: feature) => {
-//   Vector.create([feature.height, feature.weight, 1.0])
-// }
-
 let _createInputVector = (feature: feature) => {
   feature->Vector.create->Vector.push(1.0)
 }
@@ -209,41 +180,21 @@ let _checkSampleCount = sampleCount => {
 let train = (state: state, sampleCount: int): state => {
   _checkSampleCount(sampleCount)
 
-  //   let learnRate = 0.1
-  // let learnRate = 3.
-  let learnRate = 10.
-  //   let epochs = 1000
-  //   let epochs = 10
-  // let epochs = 1
-  // let epochs = 100
+  // let layer2LearnRate = 0.1
+  let layer2LearnRate = 10.0
+  let layer3LearnRate = 10.0
+  // let layer3LearnRate = 1.0
+  // let learnRate = 0.1
   let epochs = 50
-  // let epochs = 80
 
   let mnistData = Mnist.set(sampleCount, 1)
-
-  //   let inputs =
-  //     mnistData.training->Mnist.getMnistData->ArraySt.map(d => d->Vector.create->_createInputVector)
-  //   let labels = mnistData.training->Mnist.getMnistLabels->ArraySt.map(Vector.create)
 
   let features = mnistData.training->Mnist.getMnistData
   let labels = mnistData.training->Mnist.getMnistLabels
 
-  //   let features = mnistData.training->Mnist.getMnistData->ArraySt.sliceFrom(-4)
-
-  //   let labels = mnistData.training->Mnist.getMnistLabels->ArraySt.sliceFrom(-4)
-
-  //   Js.log((data, labels))
-
   let n = features->ArraySt.length->Obj.magic
 
   ArraySt.range(0, epochs - 1)->ArraySt.reduceOneParam((. state, epoch) => {
-    // let mnistData = Mnist.set(sampleCount, 1)
-
-    // let features = mnistData.training->Mnist.getMnistData
-    // let labels = mnistData.training->Mnist.getMnistLabels
-
-    let n = features->ArraySt.length->Obj.magic
-
     let (state, (correctCount, errorCount)) =
       features->ArraySt.reduceOneParami((. (state, (correctCount, errorCount)), feature, i) => {
         let labelVector = labels[i]->Vector.create
@@ -270,26 +221,34 @@ let train = (state: state, sampleCount: int): state => {
         let (layer2Gradient, layer3Gradient) =
           forwardOutput->backward(n, labelVector, inputVector, state)
 
-        // Js.log(layer3Gradient)
-
         // DebugUtils.checkWeightMatrixAndGradientMatrixRadio(
         //   state.wMatrixBetweenLayer1Layer2,
-        //   Matrix.multiplyScalar(learnRate, layer2Gradient),
+        //   Matrix.multiplyScalar(layer2LearnRate , layer2Gradient),
         // )
-        //   DebugUtils.checkWeightMatrixAndGradientMatrixRadio(
-        // state.wMatrixBetweenLayer2Layer3,
-        //   Matrix.multiplyScalar(learnRate, layer3Gradient),
-        //   )
+        // DebugUtils.checkWeightMatrixAndGradientMatrixRadio(
+        //   state.wMatrixBetweenLayer2Layer3,
+        //   Matrix.multiplyScalar(layer3LearnRate, layer3Gradient),
+        // )
+
+        // DebugUtils.checkGradientExplosionOrDisappear(layer2Gradient)->ignore
+        // DebugUtils.checkGradientExplosionOrDisappear(layer3Gradient)->ignore
+
+        DebugUtils.checkGradientExplosionOrDisappear(
+          layer2Gradient->Matrix.multiplyScalar(layer2LearnRate, _),
+        )->ignore
+        DebugUtils.checkGradientExplosionOrDisappear(
+          layer3Gradient->Matrix.multiplyScalar(layer3LearnRate, _),
+        )->ignore
 
         (
           {
             wMatrixBetweenLayer1Layer2: Matrix.sub(
               state.wMatrixBetweenLayer1Layer2,
-              layer2Gradient->Matrix.multiplyScalar(learnRate, _),
+              layer2Gradient->Matrix.multiplyScalar(layer2LearnRate, _),
             ),
             wMatrixBetweenLayer2Layer3: Matrix.sub(
               state.wMatrixBetweenLayer2Layer3,
-              layer3Gradient->Matrix.multiplyScalar(learnRate, _),
+              layer3Gradient->Matrix.multiplyScalar(layer3LearnRate, _),
             ),
           },
           _isCorrectInference(labelVector, layer3OutputVector)
@@ -298,7 +257,6 @@ let train = (state: state, sampleCount: int): state => {
         )
       }, (state, (0, 0)))
 
-    // mod(epoch, 10) == 0
     true
       ? {
           Js.log(("getCorrectRate:", _getCorrectRate(correctCount, errorCount)))
@@ -456,6 +414,12 @@ let checkGradient = (inputVector, labelVector) => {
     })
   }
 
+  let _computeLoss = (labels, outputs) => {
+    labels->ArraySt.reduceOneParami((. result, label, i) => {
+      result +. Js.Math.pow_float(~base=label -. outputs[i], ~exp=2.0)
+    }, 0.) /. ArraySt.length(labels)->Obj.magic
+  }
+
   let _computeErrorForLayer3 = (labelVector, outputVector) =>
     _computeLoss(labelVector->Vector.toArray, outputVector->Vector.toArray)
 
@@ -545,6 +509,16 @@ let checkGradient = (inputVector, labelVector) => {
   )
 }
 
+type label =
+  | Male
+  | Female
+
+let _convertLabelToFloat = label =>
+  switch label {
+  | Male => 0.
+  | Female => 1.
+  }
+
 let testCheckGradient = () => {
   let inputVector = [-2., -1., 1.]->Vector.create
   let labelVector = [Female]->Vector.create->Vector.map(_convertLabelToFloat)
@@ -558,8 +532,6 @@ Js.log("finish test")
 
 let state = createState(784, 30, 10)
 
-// let state = train(state, 200)
-// let state = train(state, 10)
-let state = train(state, 100)
+let state = train(state, 10)
 
-Js.log(("inference correctRate:", inferenceWithSampleCount(state, 1000)))
+Js.log(("inference correctRate:", inferenceWithSampleCount(state, 10000)))

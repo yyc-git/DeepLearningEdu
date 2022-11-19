@@ -1,18 +1,18 @@
+'use strict';
 
-
-import * as Curry from "../../../../../../node_modules/rescript/lib/es6/curry.js";
-import * as Mnist from "mnist";
-import * as Caml_array from "../../../../../../node_modules/rescript/lib/es6/caml_array.js";
-import * as Log$Gender_analyze from "./Log.bs.js";
-import * as Mnist$Gender_analyze from "./mnist.bs.js";
-import * as Matrix$Gender_analyze from "./Matrix.bs.js";
-import * as Vector$Gender_analyze from "./Vector.bs.js";
-import * as ArraySt$Gender_analyze from "./ArraySt.bs.js";
-import * as OptionSt$Gender_analyze from "./OptionSt.bs.js";
-import * as Exception$Gender_analyze from "./Exception.bs.js";
-import * as DebugUtils$Gender_analyze from "./DebugUtils.bs.js";
-import * as FloatUtils$Gender_analyze from "./FloatUtils.bs.js";
-import * as MatrixUtils$Gender_analyze from "./MatrixUtils.bs.js";
+var Curry = require("rescript/lib/js/curry.js");
+var Mnist = require("mnist");
+var Caml_array = require("rescript/lib/js/caml_array.js");
+var Log$Gender_analyze = require("../Log.bs.js");
+var Mnist$Gender_analyze = require("../mnist.bs.js");
+var Matrix$Gender_analyze = require("../Matrix.bs.js");
+var Vector$Gender_analyze = require("../Vector.bs.js");
+var ArraySt$Gender_analyze = require("../ArraySt.bs.js");
+var OptionSt$Gender_analyze = require("../OptionSt.bs.js");
+var Exception$Gender_analyze = require("../Exception.bs.js");
+var DebugUtils$Gender_analyze = require("../DebugUtils.bs.js");
+var FloatUtils$Gender_analyze = require("../FloatUtils.bs.js");
+var MatrixUtils$Gender_analyze = require("../MatrixUtils.bs.js");
 
 function _createWMatrix(getValue, firstLayerNodeCount, secondLayerNodeCount) {
   var col = firstLayerNodeCount + 1 | 0;
@@ -129,20 +129,6 @@ function backward(param, n, labelVector, inputVector, state) {
         ];
 }
 
-function _convertLabelToFloat(label) {
-  if (label) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-function _computeLoss(labels, outputs) {
-  return ArraySt$Gender_analyze.reduceOneParami(labels, (function (result, label, i) {
-                return result + Math.pow(label - Caml_array.get(outputs, i), 2.0);
-              }), 0) / ArraySt$Gender_analyze.length(labels);
-}
-
 function _createInputVector(feature) {
   return Vector$Gender_analyze.push(Vector$Gender_analyze.create(feature), 1.0);
 }
@@ -188,9 +174,8 @@ function train(state, sampleCount) {
   var mnistData = Mnist.set(sampleCount, 1);
   var features = Mnist$Gender_analyze.getMnistData(mnistData.training);
   var labels = Mnist$Gender_analyze.getMnistLabels(mnistData.training);
-  ArraySt$Gender_analyze.length(features);
+  var n = ArraySt$Gender_analyze.length(features);
   return ArraySt$Gender_analyze.reduceOneParam(ArraySt$Gender_analyze.range(0, 49), (function (state, epoch) {
-                var n = ArraySt$Gender_analyze.length(features);
                 var match = ArraySt$Gender_analyze.reduceOneParami(features, (function (param, feature, i) {
                         var match = param[1];
                         var errorCount = match[1];
@@ -215,10 +200,14 @@ function train(state, sampleCount) {
                                 })
                             ], inputVector, state);
                         var match$1 = backward(forwardOutput, n, labelVector, inputVector, state);
+                        var layer3Gradient = match$1[1];
+                        var layer2Gradient = match$1[0];
+                        DebugUtils$Gender_analyze.checkGradientExplosionOrDisappear(Matrix$Gender_analyze.multiplyScalar(10.0, layer2Gradient));
+                        DebugUtils$Gender_analyze.checkGradientExplosionOrDisappear(Matrix$Gender_analyze.multiplyScalar(10.0, layer3Gradient));
                         return [
                                 {
-                                  wMatrixBetweenLayer1Layer2: Matrix$Gender_analyze.sub(state.wMatrixBetweenLayer1Layer2, Matrix$Gender_analyze.multiplyScalar(10, match$1[0])),
-                                  wMatrixBetweenLayer2Layer3: Matrix$Gender_analyze.sub(state.wMatrixBetweenLayer2Layer3, Matrix$Gender_analyze.multiplyScalar(10, match$1[1]))
+                                  wMatrixBetweenLayer1Layer2: Matrix$Gender_analyze.sub(state.wMatrixBetweenLayer1Layer2, Matrix$Gender_analyze.multiplyScalar(10.0, layer2Gradient)),
+                                  wMatrixBetweenLayer2Layer3: Matrix$Gender_analyze.sub(state.wMatrixBetweenLayer2Layer3, Matrix$Gender_analyze.multiplyScalar(10.0, layer3Gradient))
                                 },
                                 _isCorrectInference(labelVector, forwardOutput[1][1]) ? [
                                     correctCount + 1 | 0,
@@ -382,7 +371,11 @@ function checkGradient(inputVector, labelVector) {
                   };
           }),
         (function (param) {
-            return _computeLoss(Vector$Gender_analyze.toArray(labelVector), Vector$Gender_analyze.toArray(param));
+            var labels = Vector$Gender_analyze.toArray(labelVector);
+            var outputs = Vector$Gender_analyze.toArray(param);
+            return ArraySt$Gender_analyze.reduceOneParami(labels, (function (result, label, i) {
+                          return result + Math.pow(label - Caml_array.get(outputs, i), 2.0);
+                        }), 0) / ArraySt$Gender_analyze.length(labels);
           }),
         (function (param) {
             return _activate_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid, param);
@@ -419,6 +412,14 @@ function checkGradient(inputVector, labelVector) {
             ], state$1.wMatrixBetweenLayer1Layer2, layer2Delta, inputVector, inputVector, state$1);
 }
 
+function _convertLabelToFloat(label) {
+  if (label) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 function testCheckGradient(param) {
   var inputVector = Vector$Gender_analyze.create([
         -2,
@@ -437,41 +438,37 @@ console.log("finish test");
 
 var state = createState(784, 30, 10);
 
-var state$1 = train(state, 100);
+var state$1 = train(state, 10);
 
 console.log([
       "inference correctRate:",
-      inferenceWithSampleCount(state$1, 1000)
+      inferenceWithSampleCount(state$1, 10000)
     ]);
 
-export {
-  _createWMatrix ,
-  createState ,
-  _handleInputValueToAvoidTooLargeForSigmoid ,
-  _activate_sigmoid ,
-  _deriv_sigmoid ,
-  _activate_linear ,
-  _deriv_linear ,
-  _forwardLayer2 ,
-  _forwardLayer3 ,
-  forward ,
-  _bpLayer3Delta ,
-  _bpLayer2Delta ,
-  backward ,
-  _convertLabelToFloat ,
-  _computeLoss ,
-  _createInputVector ,
-  _getOutputNumber ,
-  _isCorrectInference ,
-  _getCorrectRate ,
-  _checkSampleCount ,
-  train ,
-  inference ,
-  inferenceWithSampleCount ,
-  _emptyHandleInputValueToAvoidTooLargeForSigmoid ,
-  checkGradient ,
-  testCheckGradient ,
-  state$1 as state,
-  
-}
+exports._createWMatrix = _createWMatrix;
+exports.createState = createState;
+exports._handleInputValueToAvoidTooLargeForSigmoid = _handleInputValueToAvoidTooLargeForSigmoid;
+exports._activate_sigmoid = _activate_sigmoid;
+exports._deriv_sigmoid = _deriv_sigmoid;
+exports._activate_linear = _activate_linear;
+exports._deriv_linear = _deriv_linear;
+exports._forwardLayer2 = _forwardLayer2;
+exports._forwardLayer3 = _forwardLayer3;
+exports.forward = forward;
+exports._bpLayer3Delta = _bpLayer3Delta;
+exports._bpLayer2Delta = _bpLayer2Delta;
+exports.backward = backward;
+exports._createInputVector = _createInputVector;
+exports._getOutputNumber = _getOutputNumber;
+exports._isCorrectInference = _isCorrectInference;
+exports._getCorrectRate = _getCorrectRate;
+exports._checkSampleCount = _checkSampleCount;
+exports.train = train;
+exports.inference = inference;
+exports.inferenceWithSampleCount = inferenceWithSampleCount;
+exports._emptyHandleInputValueToAvoidTooLargeForSigmoid = _emptyHandleInputValueToAvoidTooLargeForSigmoid;
+exports.checkGradient = checkGradient;
+exports._convertLabelToFloat = _convertLabelToFloat;
+exports.testCheckGradient = testCheckGradient;
+exports.state = state$1;
 /*  Not a pure module */

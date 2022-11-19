@@ -188,8 +188,9 @@ function train(state, sampleCount) {
   var mnistData = Mnist.set(sampleCount, 1);
   var features = Mnist$Gender_analyze.getMnistData(mnistData.training);
   var labels = Mnist$Gender_analyze.getMnistLabels(mnistData.training);
-  var n = ArraySt$Gender_analyze.length(features);
+  ArraySt$Gender_analyze.length(features);
   return ArraySt$Gender_analyze.reduceOneParam(ArraySt$Gender_analyze.range(0, 49), (function (state, epoch) {
+                var n = ArraySt$Gender_analyze.length(features);
                 var match = ArraySt$Gender_analyze.reduceOneParami(features, (function (param, feature, i) {
                         var match = param[1];
                         var errorCount = match[1];
@@ -436,11 +437,11 @@ console.log("finish test");
 
 var state = createState(784, 30, 10);
 
-var state$1 = train(state, 10);
+var state$1 = train(state, 100);
 
 console.log([
       "inference correctRate:",
-      inferenceWithSampleCount(state$1, 100)
+      inferenceWithSampleCount(state$1, 1000)
     ]);
 
 exports._createWMatrix = _createWMatrix;
