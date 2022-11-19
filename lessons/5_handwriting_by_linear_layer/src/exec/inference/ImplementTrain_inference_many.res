@@ -290,7 +290,7 @@ let inference = (state: state, feature: feature) => {
   layer3OutputVector
 }
 
-let inferenceWithSampleCount = (state: state, sampleCount: int) => {
+let inferenceWithSampleCount = (state: state, sampleCount: int): string => {
   // TODO implement
   Obj.magic(1)
 }
