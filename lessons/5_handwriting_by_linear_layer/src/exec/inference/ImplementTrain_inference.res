@@ -268,50 +268,8 @@ let train = (state: state, sampleCount: int): state => {
 }
 
 let inference = (state: state, feature: feature) => {
-  let inputVector = _createInputVector(feature)
-
-  let (_, (_, layer3OutputVector)) = forward(
-    (
-      _activate_sigmoid(
-        _handleInputValueToAvoidTooLargeForSigmoid(
-          Matrix.getColCount(state.wMatrixBetweenLayer1Layer2),
-        ),
-      ),
-      _activate_sigmoid(
-        _handleInputValueToAvoidTooLargeForSigmoid(
-          Matrix.getColCount(state.wMatrixBetweenLayer2Layer3),
-        ),
-      ),
-    ),
-    inputVector,
-    state,
-  )
-
-  // layer3OutputVector->Log.printForDebug->_getOutputNumber
-  layer3OutputVector
-}
-
-let inferenceWithSampleCount = (state: state, sampleCount: int) => {
-  _checkSampleCount(sampleCount)
-
-  let mnistData = Mnist.set(0, sampleCount)
-
-  // let testData = mnistData.test->Mnist.getMnistData->ArraySt.sliceFrom(-8)
-
-  // let testLabels = mnistData.test->Mnist.getMnistLabels->ArraySt.sliceFrom(-8)
-
-  let testData = mnistData.test->Mnist.getMnistData
-
-  let testLabels = mnistData.test->Mnist.getMnistLabels
-
-  let (correctCount, errorCount) =
-    testData->ArraySt.reduceOneParami((. (correctCount, errorCount), data, i) => {
-      _isCorrectInference(testLabels[i]->Vector.create, inference(state, data))
-        ? (correctCount->succ, errorCount)
-        : (correctCount, errorCount->succ)
-    }, (0, 0))->Log.printForDebug
-
-  _getCorrectRate(correctCount, errorCount)
+  // TODO implement
+  Obj.magic(1)
 }
 
 let _emptyHandleInputValueToAvoidTooLargeForSigmoid = inputValue => {
@@ -534,4 +492,9 @@ let state = createState(784, 30, 10)
 
 let state = train(state, 10)
 
-Js.log(("inference correctRate:", inferenceWithSampleCount(state, 10000)))
+let mnistData = Mnist.set(1, 1)
+
+let features = mnistData.training->Mnist.getMnistData
+let labels = mnistData.training->Mnist.getMnistLabels
+
+inference(state, features[0])->Js.log
