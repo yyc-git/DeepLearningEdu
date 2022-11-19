@@ -233,6 +233,27 @@ function train(state, sampleCount) {
 }
 
 function inference(state, feature) {
+  var inputVector = Vector$Gender_analyze.push(Vector$Gender_analyze.create(feature), 1.0);
+  var partial_arg = Matrix$Gender_analyze.getColCount(state.wMatrixBetweenLayer1Layer2);
+  var partial_arg$1 = function (param) {
+    return _handleInputValueToAvoidTooLargeForSigmoid(partial_arg, param);
+  };
+  var partial_arg$2 = Matrix$Gender_analyze.getColCount(state.wMatrixBetweenLayer2Layer3);
+  var partial_arg$3 = function (param) {
+    return _handleInputValueToAvoidTooLargeForSigmoid(partial_arg$2, param);
+  };
+  var match = forward([
+        (function (param) {
+            return _activate_sigmoid(partial_arg$1, param);
+          }),
+        (function (param) {
+            return _activate_sigmoid(partial_arg$3, param);
+          })
+      ], inputVector, state);
+  return match[1][1];
+}
+
+function inferenceWithSampleCount(state, sampleCount) {
   return 1;
 }
 
@@ -396,13 +417,10 @@ var state = createState(784, 30, 10);
 
 var state$1 = train(state, 10);
 
-var mnistData = Mnist.set(1, 1);
-
-var features = Mnist$Gender_analyze.getMnistData(mnistData.training);
-
-var labels = Mnist$Gender_analyze.getMnistLabels(mnistData.training);
-
-console.log(1);
+console.log([
+      "inference correctRate:",
+      1
+    ]);
 
 export {
   _createWMatrix ,
@@ -425,14 +443,12 @@ export {
   _checkSampleCount ,
   train ,
   inference ,
+  inferenceWithSampleCount ,
   _emptyHandleInputValueToAvoidTooLargeForSigmoid ,
   checkGradient ,
   _convertLabelToFloat ,
   testCheckGradient ,
   state$1 as state,
-  mnistData ,
-  features ,
-  labels ,
   
 }
 /*  Not a pure module */

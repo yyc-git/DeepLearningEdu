@@ -3,7 +3,6 @@
 var Curry = require("rescript/lib/js/curry.js");
 var Mnist = require("mnist");
 var Caml_array = require("rescript/lib/js/caml_array.js");
-var Log$Gender_analyze = require("../Log.bs.js");
 var Mnist$Gender_analyze = require("../mnist.bs.js");
 var Matrix$Gender_analyze = require("../Matrix.bs.js");
 var Vector$Gender_analyze = require("../Vector.bs.js");
@@ -234,50 +233,7 @@ function train(state, sampleCount) {
 }
 
 function inference(state, feature) {
-  var inputVector = Vector$Gender_analyze.push(Vector$Gender_analyze.create(feature), 1.0);
-  var partial_arg = Matrix$Gender_analyze.getColCount(state.wMatrixBetweenLayer1Layer2);
-  var partial_arg$1 = function (param) {
-    return _handleInputValueToAvoidTooLargeForSigmoid(partial_arg, param);
-  };
-  var partial_arg$2 = Matrix$Gender_analyze.getColCount(state.wMatrixBetweenLayer2Layer3);
-  var partial_arg$3 = function (param) {
-    return _handleInputValueToAvoidTooLargeForSigmoid(partial_arg$2, param);
-  };
-  var match = forward([
-        (function (param) {
-            return _activate_sigmoid(partial_arg$1, param);
-          }),
-        (function (param) {
-            return _activate_sigmoid(partial_arg$3, param);
-          })
-      ], inputVector, state);
-  return match[1][1];
-}
-
-function inferenceWithSampleCount(state, sampleCount) {
-  _checkSampleCount(sampleCount);
-  var mnistData = Mnist.set(0, sampleCount);
-  var testData = Mnist$Gender_analyze.getMnistData(mnistData.test);
-  var testLabels = Mnist$Gender_analyze.getMnistLabels(mnistData.test);
-  var match = Log$Gender_analyze.printForDebug(ArraySt$Gender_analyze.reduceOneParami(testData, (function (param, data, i) {
-              var errorCount = param[1];
-              var correctCount = param[0];
-              if (_isCorrectInference(Vector$Gender_analyze.create(Caml_array.get(testLabels, i)), inference(state, data))) {
-                return [
-                        correctCount + 1 | 0,
-                        errorCount
-                      ];
-              } else {
-                return [
-                        correctCount,
-                        errorCount + 1 | 0
-                      ];
-              }
-            }), [
-            0,
-            0
-          ]));
-  return _getCorrectRate(match[0], match[1]);
+  return 1;
 }
 
 function _emptyHandleInputValueToAvoidTooLargeForSigmoid(inputValue) {
@@ -440,10 +396,13 @@ var state = createState(784, 30, 10);
 
 var state$1 = train(state, 10);
 
-console.log([
-      "inference correctRate:",
-      inferenceWithSampleCount(state$1, 10000)
-    ]);
+var mnistData = Mnist.set(1, 1);
+
+var features = Mnist$Gender_analyze.getMnistData(mnistData.training);
+
+var labels = Mnist$Gender_analyze.getMnistLabels(mnistData.training);
+
+console.log(1);
 
 exports._createWMatrix = _createWMatrix;
 exports.createState = createState;
@@ -465,10 +424,12 @@ exports._getCorrectRate = _getCorrectRate;
 exports._checkSampleCount = _checkSampleCount;
 exports.train = train;
 exports.inference = inference;
-exports.inferenceWithSampleCount = inferenceWithSampleCount;
 exports._emptyHandleInputValueToAvoidTooLargeForSigmoid = _emptyHandleInputValueToAvoidTooLargeForSigmoid;
 exports.checkGradient = checkGradient;
 exports._convertLabelToFloat = _convertLabelToFloat;
 exports.testCheckGradient = testCheckGradient;
 exports.state = state$1;
+exports.mnistData = mnistData;
+exports.features = features;
+exports.labels = labels;
 /*  Not a pure module */
