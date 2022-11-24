@@ -3,7 +3,14 @@ type state = {
   wMatrixBetweenLayer2Layer3: Matrix.t,
 }
 
-type feature = array<float>
+type feature = {
+  weight: float,
+  height: float,
+}
+
+type label =
+  | Male
+  | Female
 
 type forwardOutput = ((Vector.t, Vector.t), (Vector.t, Vector.t))
 
@@ -22,22 +29,16 @@ let createState = (layer1NodeCount, layer2NodeCount, layer3NodeCount): state => 
   wMatrixBetweenLayer2Layer3: _createWMatrix(Js.Math.random, layer2NodeCount, layer3NodeCount),
 }
 
-let _handleInputValueToAvoidTooLargeForSigmoid = (max, inputValue) => {
-  inputValue /. (max->Obj.magic /. 10.)
-}
-
-let _activate_sigmoid = (handleInputValueToAvoidTooLargeForSigmoid, x) => {
-  let x = x->handleInputValueToAvoidTooLargeForSigmoid
-
-  DebugUtils.checkSigmoidInputTooLarge(x)
-
+let _activate_sigmoid = x => {
   1. /. (1. +. Js.Math.exp(-.x))
+  // x
 }
 
-let _deriv_sigmoid = (handleInputValueToAvoidTooLargeForSigmoid, x) => {
-  let fx = _activate_sigmoid(handleInputValueToAvoidTooLargeForSigmoid, x)
+let _deriv_sigmoid = x => {
+  let fx = _activate_sigmoid(x)
 
   fx *. (1. -. fx)
+  // 1.0
 }
 
 let _activate_linear = x => {
@@ -105,32 +106,15 @@ let _bpLayer2Delta = (deriv, layer2Net, layer3Delta, state) => {
 let backward = (
   ((layer2Net, layer2OutputVector), (layer3Net, layer3OutputVector)): forwardOutput,
   n: float,
-  labelVector: Vector.t,
+  label: float,
   inputVector: Vector.t,
   state: state,
 ): (layer2Gradient, layer3Gradient) => {
-  let layer3Delta = _bpLayer3Delta(
-    _deriv_sigmoid(
-      _handleInputValueToAvoidTooLargeForSigmoid(
-        Matrix.getColCount(state.wMatrixBetweenLayer2Layer3),
-      ),
-    ),
-    layer3Net,
-    layer3OutputVector,
-    n,
-    labelVector,
-  )
+  let labelVector = Vector.create([label])
 
-  let layer2Delta = _bpLayer2Delta(
-    _deriv_sigmoid(
-      _handleInputValueToAvoidTooLargeForSigmoid(
-        Matrix.getColCount(state.wMatrixBetweenLayer1Layer2),
-      ),
-    ),
-    layer2Net,
-    layer3Delta,
-    state,
-  )
+  let layer3Delta = _bpLayer3Delta(_deriv_sigmoid, layer3Net, layer3OutputVector, n, labelVector)
+
+  let layer2Delta = _bpLayer2Delta(_deriv_sigmoid, layer2Net, layer3Delta, state)
 
   let layer2Gradient = Matrix.multiply(
     Matrix.create(Vector.length(layer2Delta), 1, layer2Delta),
@@ -148,114 +132,76 @@ let backward = (
   (layer2Gradient, layer3Gradient)
 }
 
-let _createInputVector = (feature: feature) => {
-  feature->Vector.create->Vector.push(1.0)
-}
-
-let _getOutputNumber = outputVector => {
-  let (_, maxValueIndex) =
-    outputVector->Vector.reducei((. (maxValue, maxValueIndex), value, index) => {
-      value >= maxValue ? (value, Some(index)) : (maxValue, maxValueIndex)
-    }, (0., None))
-
-  maxValueIndex->OptionSt.getExn
-}
-
-let _isCorrectInference = (labelVector, predictVector) => {
-  _getOutputNumber(labelVector) == _getOutputNumber(predictVector)
-}
-
-let _getCorrectRate = (correctCount, errorCount) => {
-  (correctCount->Obj.magic /. (correctCount->Obj.magic +. errorCount->Obj.magic) *. 100.)
-    ->Obj.magic ++ "%"
-}
-
-let _checkSampleCount = sampleCount => {
-  sampleCount < 10 ? Exception.throwErr("error") : ()
-}
+let _convertLabelToFloat = label =>
+  switch label {
+  | Male => 0.
+  | Female => 1.
+  }
 
 let _computeLoss = (labels, outputs) => {
   //TODO implement
   Obj.magic(1)
 }
 
-let train = (state: state, sampleCount: int): state => {
-  _checkSampleCount(sampleCount)
+let _createInputVector = (feature: feature) => {
+  Vector.create([feature.height, feature.weight, 1.0])
+}
 
-  // let layer2LearnRate = 0.1
-  let layer2LearnRate = 10.0
-  let layer3LearnRate = 10.0
-  // let layer3LearnRate = 1.0
-  // let learnRate = 0.1
-  let epochs = 50
+let train = (state: state, features: array<feature>, labels: array<label>): state => {
+  let learnRate = 0.1
+  let epochs = 1000
+
+  let n = features->ArraySt.length->Obj.magic
 
   ArraySt.range(0, epochs - 1)->ArraySt.reduceOneParam((. state, epoch) => {
-    let mnistData = Mnist.set(sampleCount, 1)
+    let state = features->ArraySt.reduceOneParami((. state, feature, i) => {
+      let label = labels[i]->_convertLabelToFloat
 
-    let features = mnistData.training->Mnist.getMnistData
-    let labels = mnistData.training->Mnist.getMnistLabels
+      let inputVector = _createInputVector(feature)
 
-    let n = features->ArraySt.length->Obj.magic
-
-    let (state, (correctCount, errorCount)) =
-      features->ArraySt.reduceOneParami((. (state, (correctCount, errorCount)), feature, i) => {
-        let labelVector = labels[i]->Vector.create
-
-        let inputVector = _createInputVector(feature)
-
-        let (_, (_, layer3OutputVector)) as forwardOutput = forward(
-          (
-            _activate_sigmoid(
-              _handleInputValueToAvoidTooLargeForSigmoid(
-                Matrix.getColCount(state.wMatrixBetweenLayer1Layer2),
-              ),
-            ),
-            _activate_sigmoid(
-              _handleInputValueToAvoidTooLargeForSigmoid(
-                Matrix.getColCount(state.wMatrixBetweenLayer2Layer3),
-              ),
-            ),
-          ),
+      let (layer2Gradient, layer3Gradient) =
+        forward((_activate_sigmoid, _activate_sigmoid), inputVector, state)->backward(
+          n,
+          label,
           inputVector,
           state,
         )
 
-        let (layer2Gradient, layer3Gradient) =
-          forwardOutput->backward(n, labelVector, inputVector, state)
+      {
+        wMatrixBetweenLayer1Layer2: Matrix.sub(
+          state.wMatrixBetweenLayer1Layer2,
+          layer2Gradient->Matrix.multiplyScalar(learnRate, _),
+        ),
+        wMatrixBetweenLayer2Layer3: Matrix.sub(
+          state.wMatrixBetweenLayer2Layer3,
+          layer3Gradient->Matrix.multiplyScalar(learnRate, _),
+        ),
+      }
+    }, state)
 
-        // DebugUtils.checkGradientExplosionOrDisappear(
-        //   layer2Gradient->Matrix.multiplyScalar(layer2LearnRate, _),
-        // )->ignore
-        // DebugUtils.checkGradientExplosionOrDisappear(
-        //   layer3Gradient->Matrix.multiplyScalar(layer3LearnRate, _),
-        // )->ignore
-
-        (
-          {
-            wMatrixBetweenLayer1Layer2: Matrix.sub(
-              state.wMatrixBetweenLayer1Layer2,
-              layer2Gradient->Matrix.multiplyScalar(layer2LearnRate, _),
-            ),
-            wMatrixBetweenLayer2Layer3: Matrix.sub(
-              state.wMatrixBetweenLayer2Layer3,
-              layer3Gradient->Matrix.multiplyScalar(layer3LearnRate, _),
-            ),
-          },
-          _isCorrectInference(labelVector, layer3OutputVector)
-            ? (correctCount->succ, errorCount)
-            : (correctCount, errorCount->succ),
-        )
-      }, (state, (0, 0)))
-
-    true
+    mod(epoch, 10) == 0
       ? {
+          // Js.log(state)
           Js.log((
             "loss: ",
-            //TODO implement
-            Obj.magic(1),
-          ))
+            _computeLoss(
+              labels->ArraySt.map(_convertLabelToFloat),
+              features->ArraySt.map(feature => {
+                let inputVector = _createInputVector(feature)
 
-          Js.log(("getCorrectRate:", _getCorrectRate(correctCount, errorCount)))
+                let (_, (_, layer3OutputVector)) = forward(
+                  (_activate_sigmoid, _activate_sigmoid),
+                  inputVector,
+                  state,
+                )
+
+                // TODO fix
+                let y5 = layer3OutputVector->Vector.getExn(0)
+
+                y5
+              }),
+            ),
+          ))
 
           state
         }
@@ -267,51 +213,30 @@ let inference = (state: state, feature: feature) => {
   let inputVector = _createInputVector(feature)
 
   let (_, (_, layer3OutputVector)) = forward(
-    (
-      _activate_sigmoid(
-        _handleInputValueToAvoidTooLargeForSigmoid(
-          Matrix.getColCount(state.wMatrixBetweenLayer1Layer2),
-        ),
-      ),
-      _activate_sigmoid(
-        _handleInputValueToAvoidTooLargeForSigmoid(
-          Matrix.getColCount(state.wMatrixBetweenLayer2Layer3),
-        ),
-      ),
-    ),
+    (_activate_sigmoid, _activate_sigmoid),
     inputVector,
     state,
   )
 
-  // layer3OutputVector->Log.printForDebug->_getOutputNumber
-  layer3OutputVector
+  let y5 = layer3OutputVector->Vector.getExn(0)
+
+  y5
 }
 
-let inferenceWithSampleCount = (state: state, sampleCount: int) => {
-  _checkSampleCount(sampleCount)
-
-  let mnistData = Mnist.set(0, sampleCount)
-
-  // let testData = mnistData.test->Mnist.getMnistData->ArraySt.sliceFrom(-8)
-
-  // let testLabels = mnistData.test->Mnist.getMnistLabels->ArraySt.sliceFrom(-8)
-
-  let testData = mnistData.test->Mnist.getMnistData
-
-  let testLabels = mnistData.test->Mnist.getMnistLabels
-
-  let (correctCount, errorCount) =
-    testData->ArraySt.reduceOneParami((. (correctCount, errorCount), data, i) => {
-      _isCorrectInference(testLabels[i]->Vector.create, inference(state, data))
-        ? (correctCount->succ, errorCount)
-        : (correctCount, errorCount->succ)
-    }, (0, 0))
-
-  _getCorrectRate(correctCount, errorCount)
+let _mean = values => {
+  values->ArraySt.reduceOneParam((. sum, value) => {
+    sum +. value
+  }, 0.) /. ArraySt.length(values)->Obj.magic
 }
 
-let _emptyHandleInputValueToAvoidTooLargeForSigmoid = inputValue => {
-  inputValue
+let _zeroMean = features => {
+  let weightMean = features->ArraySt.map(feature => feature.weight)->_mean->Js.Math.floor->Obj.magic
+  let heightMean = features->ArraySt.map(feature => feature.height)->_mean->Js.Math.floor->Obj.magic
+
+  features->ArraySt.map(feature => {
+    weight: feature.weight -. weightMean,
+    height: feature.height -. heightMean,
+  })
 }
 
 let checkGradient = (inputVector, labelVector) => {
@@ -410,12 +335,6 @@ let checkGradient = (inputVector, labelVector) => {
     })
   }
 
-  let _computeLoss = (labels, outputs) => {
-    labels->ArraySt.reduceOneParami((. result, label, i) => {
-      result +. Js.Math.pow_float(~base=label -. outputs[i], ~exp=2.0)
-    }, 0.) /. ArraySt.length(labels)->Obj.magic
-  }
-
   let _computeErrorForLayer3 = (labelVector, outputVector) =>
     _computeLoss(labelVector->Vector.toArray, outputVector->Vector.toArray)
 
@@ -426,23 +345,14 @@ let checkGradient = (inputVector, labelVector) => {
   let state = createState(2, 2, 1)
 
   let ((_, layer2OutputVector), (layer3Net, layer3OutputVector)) = forward(
-    (
-      _activate_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
-      _activate_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
-    ),
+    (_activate_sigmoid, _activate_sigmoid),
     inputVector,
     state,
   )
 
   let n = 1.0
 
-  let layer3Delta = _bpLayer3Delta(
-    _deriv_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
-    layer3Net,
-    layer3OutputVector,
-    n,
-    labelVector,
-  )
+  let layer3Delta = _bpLayer3Delta(_deriv_sigmoid, layer3Net, layer3OutputVector, n, labelVector)
 
   /* ! check layer3 */
 
@@ -453,8 +363,8 @@ let checkGradient = (inputVector, labelVector) => {
         wMatrixBetweenLayer2Layer3: wMatrix,
       },
       _computeErrorForLayer3(labelVector),
-      _activate_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
-      _activate_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
+      _activate_sigmoid,
+      _activate_sigmoid,
       _checkWeight,
     ),
     state.wMatrixBetweenLayer2Layer3,
@@ -468,21 +378,12 @@ let checkGradient = (inputVector, labelVector) => {
 
   let state = createState(2, 2, 1)
 
-  let (layer2Net, _) = _forwardLayer2(
-    _activate_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
-    inputVector,
-    state,
-  )
+  let (layer2Net, _) = _forwardLayer2(_activate_sigmoid, inputVector, state)
 
   let layer3NodeCount = state.wMatrixBetweenLayer2Layer3->Matrix.getRowCount
   let layer3Delta = ArraySt.range(0, layer3NodeCount - 1)->ArraySt.map(_ => 1.)->Vector.create
 
-  let layer2Delta = _bpLayer2Delta(
-    _deriv_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
-    layer2Net,
-    layer3Delta,
-    state,
-  )
+  let layer2Delta = _bpLayer2Delta(_deriv_sigmoid, layer2Net, layer3Delta, state)
 
   let layer1OutputVector = inputVector
 
@@ -493,7 +394,7 @@ let checkGradient = (inputVector, labelVector) => {
         wMatrixBetweenLayer1Layer2: wMatrix,
       },
       _computeErrorForLayer2,
-      _activate_sigmoid(_emptyHandleInputValueToAvoidTooLargeForSigmoid),
+      _activate_sigmoid,
       _activate_linear,
       _checkWeight,
     ),
@@ -504,16 +405,6 @@ let checkGradient = (inputVector, labelVector) => {
     state,
   )
 }
-
-type label =
-  | Male
-  | Female
-
-let _convertLabelToFloat = label =>
-  switch label {
-  | Male => 0.
-  | Female => 1.
-  }
 
 let testCheckGradient = () => {
   let inputVector = [-2., -1., 1.]->Vector.create
@@ -526,8 +417,60 @@ Js.log("begin test")
 testCheckGradient()
 Js.log("finish test")
 
-let state = createState(784, 30, 10)
+let state = createState(2, 2, 1)
 
-let state = train(state, 100)
+let features = [
+  {
+    weight: 50.,
+    height: 150.,
+  },
+  {
+    weight: 51.,
+    height: 149.,
+  },
+  {
+    weight: 60.,
+    height: 172.,
+  },
+  {
+    weight: 90.,
+    height: 188.,
+  },
+]
 
-Js.log(("inference correctRate:", inferenceWithSampleCount(state, 10000)))
+let labels = [Female, Female, Male, Male]
+
+let _mean = values => {
+  values->ArraySt.reduceOneParam((. sum, value) => {
+    sum +. value
+  }, 0.) /. ArraySt.length(values)->Obj.magic
+}
+
+let _zeroMean = features => {
+  let weightMean = features->ArraySt.map(feature => feature.weight)->_mean->Js.Math.floor->Obj.magic
+  let heightMean = features->ArraySt.map(feature => feature.height)->_mean->Js.Math.floor->Obj.magic
+
+  features->ArraySt.map(feature => {
+    weight: feature.weight -. weightMean,
+    height: feature.height -. heightMean,
+  })
+}
+
+let features = features->_zeroMean
+
+let state = state->train(features, labels)
+
+let featuresForInference = [
+  {
+    weight: 89.,
+    height: 190.,
+  },
+  {
+    weight: 60.,
+    height: 155.,
+  },
+]
+
+featuresForInference->_zeroMean->Js.Array.forEach(feature => {
+  inference(state, feature)->Js.log
+}, _)
