@@ -274,17 +274,11 @@ function inference(state, feature) {
   var partial_arg$1 = function (param) {
     return _handleInputVectorToAvoidTooLargeForSigmoid(partial_arg, param);
   };
-  var partial_arg$2 = Matrix$Gender_analyze.getColCount(state.wMatrixBetweenLayer2Layer3);
-  var partial_arg$3 = function (param) {
-    return _handleInputVectorToAvoidTooLargeForSigmoid(partial_arg$2, param);
-  };
   var match = forward([
         (function (param) {
             return Vector$Gender_analyze.map(Curry._1(partial_arg$1, param), _activate_sigmoid_value);
           }),
-        (function (param) {
-            return Vector$Gender_analyze.map(Curry._1(partial_arg$3, param), _activate_sigmoid_value);
-          })
+        _activate_softmax
       ], inputVector, state);
   return match[1][1];
 }
