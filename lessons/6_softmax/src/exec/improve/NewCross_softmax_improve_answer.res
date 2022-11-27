@@ -259,9 +259,6 @@ let train = (state: state, sampleCount: int): state => {
           let (layer2Gradient, layer3Gradient) =
             forwardOutput->backward(n, labelVector, inputVector, state)
 
-        // DebugUtils.checkGradientExplosionOrDisappear(
-        //   layer2Gradient->Matrix.multiplyScalar(layer2LearnRate, _),
-        // )->ignore
         DebugUtils.checkGradientExplosionOrDisappear(
           layer3Gradient->Matrix.multiplyScalar(layer3LearnRate, _),
         )->ignore
