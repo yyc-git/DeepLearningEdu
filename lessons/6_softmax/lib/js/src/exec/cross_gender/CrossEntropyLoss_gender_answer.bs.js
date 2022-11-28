@@ -80,7 +80,7 @@ function forward(param, inputVector, state) {
 
 function _bpLayer3Delta(deriv, layer3Net, layer3OutputVector, n, labelVector) {
   return Vector$Gender_analyze.mapi(layer3OutputVector, (function (layer3OutputValue, i) {
-                return 1;
+                return layer3OutputValue - Vector$Gender_analyze.getExn(labelVector, i);
               }));
 }
 
@@ -91,14 +91,13 @@ function _bpLayer2Delta(deriv, layer2Net, layer3Delta, state) {
 }
 
 function backward(param, n, label, inputVector, state) {
-  var match = param[0];
-  Vector$Gender_analyze.create([label]);
-  var layer3Delta = Vector$Gender_analyze.mapi(param[1][1], (function (layer3OutputValue, i) {
-          return 1;
-        }));
-  var layer2Delta = _bpLayer2Delta(_deriv_sigmoid, match[0], layer3Delta, state);
+  var match = param[1];
+  var match$1 = param[0];
+  var labelVector = Vector$Gender_analyze.create([label]);
+  var layer3Delta = _bpLayer3Delta(_deriv_sigmoid, match[0], match[1], n, labelVector);
+  var layer2Delta = _bpLayer2Delta(_deriv_sigmoid, match$1[0], layer3Delta, state);
   var layer2Gradient = Matrix$Gender_analyze.multiply(Matrix$Gender_analyze.create(Vector$Gender_analyze.length(layer2Delta), 1, layer2Delta), Matrix$Gender_analyze.create(1, Vector$Gender_analyze.length(inputVector), inputVector));
-  var layer2OutputVector = Vector$Gender_analyze.push(match[1], 1.0);
+  var layer2OutputVector = Vector$Gender_analyze.push(match$1[1], 1.0);
   var layer3Gradient = Matrix$Gender_analyze.multiply(Matrix$Gender_analyze.create(Vector$Gender_analyze.length(layer3Delta), 1, layer3Delta), Matrix$Gender_analyze.create(1, Vector$Gender_analyze.length(layer2OutputVector), layer2OutputVector));
   return [
           layer2Gradient,
@@ -115,7 +114,10 @@ function _convertLabelToFloat(label) {
 }
 
 function _computeLoss(labels, outputs) {
-  return 1;
+  return ArraySt$Gender_analyze.reduceOneParami(labels, (function (result, label, i) {
+                var output = Caml_array.get(outputs, i);
+                return result + -(label * Math.log(output) + (1 - label) * Math.log(1 - output));
+              }), 0) / ArraySt$Gender_analyze.length(labels);
 }
 
 function _createInputVector(feature) {
@@ -144,14 +146,14 @@ function train(state, features, labels) {
                 if (epoch % 10 === 0) {
                   console.log([
                         "loss: ",
-                        (ArraySt$Gender_analyze.map(features, (function (feature) {
-                                  var inputVector = _createInputVector(feature);
-                                  var match = forward([
-                                        _activate_sigmoid,
-                                        _activate_sigmoid
-                                      ], inputVector, state$1);
-                                  return Vector$Gender_analyze.getExn(match[1][1], 0);
-                                })), ArraySt$Gender_analyze.map(labels, _convertLabelToFloat), 1)
+                        _computeLoss(ArraySt$Gender_analyze.map(labels, _convertLabelToFloat), ArraySt$Gender_analyze.map(features, (function (feature) {
+                                    var inputVector = _createInputVector(feature);
+                                    var match = forward([
+                                          _activate_sigmoid,
+                                          _activate_sigmoid
+                                        ], inputVector, state$1);
+                                    return Vector$Gender_analyze.getExn(match[1][1], 0);
+                                  })))
                       ]);
                   return state$1;
                 } else {
@@ -240,9 +242,8 @@ function checkGradient(inputVector, labelVector) {
         _activate_sigmoid,
         _activate_sigmoid
       ], inputVector, state);
-  var layer3Delta = Vector$Gender_analyze.mapi(match[1][1], (function (layer3OutputValue, i) {
-          return 1;
-        }));
+  var match$1 = match[1];
+  var layer3Delta = _bpLayer3Delta(_deriv_sigmoid, match$1[0], match$1[1], 1.0, labelVector);
   _check([
         (function (state, wMatrix) {
             return {
@@ -251,21 +252,19 @@ function checkGradient(inputVector, labelVector) {
                   };
           }),
         (function (param) {
-            Vector$Gender_analyze.toArray(param);
-            Vector$Gender_analyze.toArray(labelVector);
-            return 1;
+            return _computeLoss(Vector$Gender_analyze.toArray(labelVector), Vector$Gender_analyze.toArray(param));
           }),
         _activate_sigmoid,
         _activate_sigmoid,
         _checkWeight
       ], state.wMatrixBetweenLayer2Layer3, layer3Delta, inputVector, Vector$Gender_analyze.push(match[0][1], 1.0), state);
   var state$1 = createState(2, 2, 1);
-  var match$1 = _forwardLayer2(_activate_sigmoid, inputVector, state$1);
+  var match$2 = _forwardLayer2(_activate_sigmoid, inputVector, state$1);
   var layer3NodeCount = Matrix$Gender_analyze.getRowCount(state$1.wMatrixBetweenLayer2Layer3);
   var layer3Delta$1 = Vector$Gender_analyze.create(ArraySt$Gender_analyze.map(ArraySt$Gender_analyze.range(0, layer3NodeCount - 1 | 0), (function (param) {
               return 1;
             })));
-  var layer2Delta = _bpLayer2Delta(_deriv_sigmoid, match$1[0], layer3Delta$1, state$1);
+  var layer2Delta = _bpLayer2Delta(_deriv_sigmoid, match$2[0], layer3Delta$1, state$1);
   return _check([
               (function (state, wMatrix) {
                   return {
