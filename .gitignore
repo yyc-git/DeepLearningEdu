@@ -17,3 +17,5 @@ yarn.lock
 example/
 
 output/
+
+.txt
