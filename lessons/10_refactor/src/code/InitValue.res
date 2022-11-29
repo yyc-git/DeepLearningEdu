@@ -1,0 +1,3 @@
+let constant = value => {
+  value
+}
