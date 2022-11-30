@@ -25,7 +25,7 @@ function _forward(x) {
 }
 
 function forwardNet(net) {
-  var net$1 = _handleInputVectorToAvoidTooLarge(net, 784 / 10);
+  var net$1 = _handleInputVectorToAvoidTooLarge(net, 784 / 30);
   return Vector$Cnn.map(net$1, _forward);
 }
 

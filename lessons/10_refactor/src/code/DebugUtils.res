@@ -16,20 +16,19 @@
 //     : ()
 // }
 
-// let _isExplosion = %raw(` (value) => { return !Number.isFinite(value) || Math.abs(value) > 1e9 } `)
+let _isExplosion = %raw(` (value) => { return !Number.isFinite(value) || Math.abs(value) > 1e9 } `)
 
-// let _checkExplosion = value => {
-//   _isExplosion(value)
-//     ? {
-//         // Log.logForDebug({j`_checkExplosion fail: $value`})
-//         Exception.throwErr({j`_checkExplosion fail: $value`})
-//       }
-//     : ()
-// }
+let _checkExplosion = value => {
+  _isExplosion(value)
+    ? {
+        Exception.throwErr({j`_checkExplosion fail: $value`})
+      }
+    : ()
+}
 
-// let checkOutputVectorExplosion = output => {
-//   output->Vector.map(_checkExplosion)->ignore
-// }
+let checkOutputVectorExplosion = output => {
+  output->Vector.map(_checkExplosion)->ignore
+}
 
 // let checkGradientVectorExplosionOrDisappear = gradient => {
 //   gradient->Vector.map(_checkExplosionOrDisappear)->ignore

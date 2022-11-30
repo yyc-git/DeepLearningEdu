@@ -8,6 +8,7 @@ import * as ArraySt$Cnn from "./ArraySt.bs.js";
 import * as Caml_option from "../../../../../../node_modules/rescript/lib/es6/caml_option.js";
 import * as OptionSt$Cnn from "./OptionSt.bs.js";
 import * as InitValue$Cnn from "./InitValue.bs.js";
+import * as DebugUtils$Cnn from "./DebugUtils.bs.js";
 import * as MatrixUtils$Cnn from "./MatrixUtils.bs.js";
 
 function getOutputNumber(outputVector) {
@@ -66,6 +67,7 @@ function forward(state, activatorData, input, param) {
   var match = OptionSt$Cnn.getExn(activatorData);
   var net = Vector$Cnn.add(Vector$Cnn.transformMatrix(state.weight, input), state.bias);
   var output = Curry._1(match.forwardNet, net);
+  DebugUtils$Cnn.checkOutputVectorExplosion(output);
   return [
           state,
           net,

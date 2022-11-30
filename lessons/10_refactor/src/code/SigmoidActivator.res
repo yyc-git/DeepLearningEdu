@@ -24,8 +24,8 @@ let _forward = x => {
 }
 
 let forwardNet = net => {
-  // TODO should pass maxOfhandleSigmoidInputToAvoidTooLarge
-  let net = net->_handleInputVectorToAvoidTooLarge(Some(784. /. 10.))
+  // TODO max should be param
+  let net = net->_handleInputVectorToAvoidTooLarge(Some(784. /. 30.))
 
   net->Vector.map(netValue => {
     _forward(netValue)
@@ -37,7 +37,7 @@ let forwardMatrix = matrix => {
 }
 
 let backward = x => {
-  // TODO should pass maxOfhandleSigmoidInputToAvoidTooLarge
+  // TODO max should be param
   let fx = _forward(x->_handleInputValueToAvoidTooLarge(784. /. 10.))
 
   fx *. (1. -. fx)

@@ -27,12 +27,12 @@ var match$1 = Network$Cnn.trainAndInference([
       match[1]
     ], [
       [
-        10,
-        false
+        100,
+        true
       ],
-      4
+      100
     ], [
-      1,
+      5,
       1
     ]);
 

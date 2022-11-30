@@ -64,8 +64,7 @@ let forward: LayerAbstractType.forward<Vector.t, Vector.t> = (state, activatorDa
   let net = Vector.transformMatrix(weight, input)->Vector.add(_, bias)
   let output = net->forwardNet
 
-  // TODO restore debug
-  // DebugUtils.checkOutputVectorExplosion(output)
+  DebugUtils.checkOutputVectorExplosion(output)
 
   (state, net->Some, output)
 }

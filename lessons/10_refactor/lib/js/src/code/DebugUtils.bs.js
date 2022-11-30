@@ -2,6 +2,21 @@
 
 var Matrix$Cnn = require("./Matrix.bs.js");
 var Vector$Cnn = require("./Vector.bs.js");
+var Exception$Cnn = require("./Exception.bs.js");
+
+var _isExplosion = ((value) => { return !Number.isFinite(value) || Math.abs(value) > 1e9 });
+
+function _checkExplosion(value) {
+  if (_isExplosion(value)) {
+    return Exception$Cnn.throwErr("_checkExplosion fail: " + value);
+  }
+  
+}
+
+function checkOutputVectorExplosion(output) {
+  Vector$Cnn.map(output, _checkExplosion);
+  
+}
 
 var _isGradientExplosionOrDisappear = ((gradient) => { return Number.isNaN(gradient) || (gradient !== 0.0 && Math.abs(gradient) < 0.0000001)|| !Number.isFinite(gradient) || Math.abs(gradient) > 1.0 });
 
@@ -49,6 +64,9 @@ function checkSigmoidInputTooLarge(input) {
   
 }
 
+exports._isExplosion = _isExplosion;
+exports._checkExplosion = _checkExplosion;
+exports.checkOutputVectorExplosion = checkOutputVectorExplosion;
 exports._isGradientExplosionOrDisappear = _isGradientExplosionOrDisappear;
 exports.checkGradientExplosionOrDisappear = checkGradientExplosionOrDisappear;
 exports._checkWeightValueAndGradientValueRadio = _checkWeightValueAndGradientValueRadio;
