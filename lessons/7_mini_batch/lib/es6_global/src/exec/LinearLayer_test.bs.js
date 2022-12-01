@@ -4,7 +4,6 @@ import * as Curry from "../../../../../../node_modules/rescript/lib/es6/curry.js
 import * as Mnist from "mnist";
 import * as Caml_array from "../../../../../../node_modules/rescript/lib/es6/caml_array.js";
 import * as Caml_int32 from "../../../../../../node_modules/rescript/lib/es6/caml_int32.js";
-import * as Log$Gender_analyze from "./Log.bs.js";
 import * as Mnist$Gender_analyze from "./mnist.bs.js";
 import * as Matrix$Gender_analyze from "./Matrix.bs.js";
 import * as Vector$Gender_analyze from "./Vector.bs.js";
@@ -202,13 +201,13 @@ function _checkSampleCount(sampleCount) {
   
 }
 
-function partition(inputVectors, labelVectors, miniBatchSize) {
-  if (ArraySt$Gender_analyze.length(inputVectors) <= miniBatchSize) {
+function partition(data, labels, miniBatchSize) {
+  if (ArraySt$Gender_analyze.length(data) <= miniBatchSize) {
     Exception$Gender_analyze.throwErr("error");
   }
-  return ArraySt$Gender_analyze.reduceOneParami(inputVectors, (function (param, inputVector, index) {
+  return ArraySt$Gender_analyze.reduceOneParami(data, (function (param, inputVector, index) {
                   var miniBatchPartitionData = param[0];
-                  var labelVector = Caml_array.get(labelVectors, index);
+                  var labelVector = Caml_array.get(labels, index);
                   var miniBatchData = ArraySt$Gender_analyze.push(param[1], [
                         inputVector,
                         labelVector
@@ -234,47 +233,92 @@ var MiniBatch = {
   partition: partition
 };
 
-function train(state, sampleCount) {
+function train(state, sampleCount, miniBatchSize) {
   _checkSampleCount(sampleCount);
-  var mnistData = Mnist.set(sampleCount, 1);
-  var features = Mnist$Gender_analyze.getMnistData(mnistData.training);
-  var labels = Mnist$Gender_analyze.getMnistLabels(mnistData.training);
-  var n = ArraySt$Gender_analyze.length(features);
   return ArraySt$Gender_analyze.reduceOneParam(ArraySt$Gender_analyze.range(0, 49), (function (state, epoch) {
-                var match = ArraySt$Gender_analyze.reduceOneParami(features, (function (param, feature, i) {
+                var mnistData = Mnist.set(sampleCount, 1);
+                var features = Mnist$Gender_analyze.getMnistData(mnistData.training);
+                var labels = Mnist$Gender_analyze.getMnistLabels(mnistData.training);
+                var n = ArraySt$Gender_analyze.length(features);
+                var miniBatchPartitionData = partition(ArraySt$Gender_analyze.map(features, _createInputVector), labels, miniBatchSize);
+                var layer1NodeCount = ArraySt$Gender_analyze.length(Caml_array.get(features, 0));
+                var layer2NodeCount = Matrix$Gender_analyze.getColCount(state.wMatrixBetweenLayer2Layer3) - 1 | 0;
+                var layer3NodeCount = Matrix$Gender_analyze.getRowCount(state.wMatrixBetweenLayer2Layer3);
+                var match = ArraySt$Gender_analyze.reduceOneParam(miniBatchPartitionData, (function (param, miniBatchData) {
                         var match = param[1];
                         var match$1 = match[0];
-                        var errorCount = match$1[1];
-                        var correctCount = match$1[0];
                         var state = param[0];
-                        var labelVector = Vector$Gender_analyze.create(Caml_array.get(labels, i));
-                        var inputVector = Vector$Gender_analyze.push(Vector$Gender_analyze.create(feature), 1.0);
-                        var partial_arg = Matrix$Gender_analyze.getColCount(state.wMatrixBetweenLayer1Layer2);
-                        var partial_arg$1 = function (param) {
-                          return _handleInputVectorToAvoidTooLargeForSigmoid(partial_arg, param);
-                        };
-                        var forwardOutput = forward([
-                              (function (param) {
-                                  return Vector$Gender_analyze.map(Curry._1(partial_arg$1, param), _activate_sigmoid_value);
-                                }),
-                              _activate_softmax
-                            ], inputVector, state);
-                        var layer3OutputVector = forwardOutput[1][1];
-                        var match$2 = backward(forwardOutput, n, labelVector, inputVector, state);
+                        var match$2 = ArraySt$Gender_analyze.reduceOneParam(miniBatchData, (function (param, param$1) {
+                                var labelVector = param$1[1];
+                                var inputVector = param$1[0];
+                                var match = param[1];
+                                var match$1 = match[0];
+                                var errorCount = match$1[1];
+                                var correctCount = match$1[0];
+                                var match$2 = param[0];
+                                var partial_arg = Matrix$Gender_analyze.getColCount(state.wMatrixBetweenLayer1Layer2);
+                                var partial_arg$1 = function (param) {
+                                  return _handleInputVectorToAvoidTooLargeForSigmoid(partial_arg, param);
+                                };
+                                var forwardOutput = forward([
+                                      (function (param) {
+                                          return Vector$Gender_analyze.map(Curry._1(partial_arg$1, param), _activate_sigmoid_value);
+                                        }),
+                                      _activate_softmax
+                                    ], inputVector, state);
+                                var layer3OutputVector = forwardOutput[1][1];
+                                var match$3 = backward(forwardOutput, n, labelVector, inputVector, state);
+                                var layer3Gradient = match$3[1];
+                                DebugUtils$Gender_analyze.checkGradientExplosionOrDisappear(Matrix$Gender_analyze.multiplyScalar(0.1, layer3Gradient));
+                                return [
+                                        [
+                                          Matrix$Gender_analyze.add(match$2[0], match$3[0]),
+                                          Matrix$Gender_analyze.add(match$2[1], layer3Gradient)
+                                        ],
+                                        [
+                                          _isCorrectInference(labelVector, layer3OutputVector) ? [
+                                              correctCount + 1 | 0,
+                                              errorCount
+                                            ] : [
+                                              correctCount,
+                                              errorCount + 1 | 0
+                                            ],
+                                          match[1] + _computeCrossEntroyLoss(labelVector, layer3OutputVector)
+                                        ]
+                                      ];
+                              }), [
+                              [
+                                _createWMatrix((function (param) {
+                                        return 0;
+                                      }), layer1NodeCount, layer2NodeCount),
+                                _createWMatrix((function (param) {
+                                        return 0;
+                                      }), layer2NodeCount, layer3NodeCount)
+                              ],
+                              [
+                                [
+                                  match$1[0],
+                                  match$1[1]
+                                ],
+                                match[1]
+                              ]
+                            ]);
+                        var match$3 = match$2[1];
+                        var match$4 = match$3[0];
+                        var match$5 = match$2[0];
+                        var layer2Gradient = Matrix$Gender_analyze.multiplyScalar(1 / miniBatchSize, match$5[0]);
+                        var layer3Gradient = Matrix$Gender_analyze.multiplyScalar(1 / miniBatchSize, match$5[1]);
                         return [
                                 {
-                                  wMatrixBetweenLayer1Layer2: Matrix$Gender_analyze.sub(state.wMatrixBetweenLayer1Layer2, Matrix$Gender_analyze.multiplyScalar(10, match$2[0])),
-                                  wMatrixBetweenLayer2Layer3: Matrix$Gender_analyze.sub(state.wMatrixBetweenLayer2Layer3, Matrix$Gender_analyze.multiplyScalar(1, match$2[1]))
+                                  wMatrixBetweenLayer1Layer2: Matrix$Gender_analyze.sub(state.wMatrixBetweenLayer1Layer2, Matrix$Gender_analyze.multiplyScalar(10.0, layer2Gradient)),
+                                  wMatrixBetweenLayer2Layer3: Matrix$Gender_analyze.sub(state.wMatrixBetweenLayer2Layer3, Matrix$Gender_analyze.multiplyScalar(0.1, layer3Gradient))
                                 },
                                 [
-                                  _isCorrectInference(labelVector, layer3OutputVector) ? [
-                                      correctCount + 1 | 0,
-                                      errorCount
-                                    ] : [
-                                      correctCount,
-                                      errorCount + 1 | 0
-                                    ],
-                                  match[1] + _computeCrossEntroyLoss(labelVector, layer3OutputVector)
+                                  [
+                                    match$4[0],
+                                    match$4[1]
+                                  ],
+                                  match$3[1]
                                 ]
                               ];
                       }), [
@@ -321,24 +365,24 @@ function inferenceWithSampleCount(state, sampleCount) {
   var mnistData = Mnist.set(0, sampleCount);
   var testData = Mnist$Gender_analyze.getMnistData(mnistData.test);
   var testLabels = Mnist$Gender_analyze.getMnistLabels(mnistData.test);
-  var match = Log$Gender_analyze.printForDebug(ArraySt$Gender_analyze.reduceOneParami(testData, (function (param, data, i) {
-              var errorCount = param[1];
-              var correctCount = param[0];
-              if (_isCorrectInference(Vector$Gender_analyze.create(Caml_array.get(testLabels, i)), inference(state, data))) {
-                return [
-                        correctCount + 1 | 0,
-                        errorCount
-                      ];
-              } else {
-                return [
-                        correctCount,
-                        errorCount + 1 | 0
-                      ];
-              }
-            }), [
-            0,
-            0
-          ]));
+  var match = ArraySt$Gender_analyze.reduceOneParami(testData, (function (param, data, i) {
+          var errorCount = param[1];
+          var correctCount = param[0];
+          if (_isCorrectInference(Vector$Gender_analyze.create(Caml_array.get(testLabels, i)), inference(state, data))) {
+            return [
+                    correctCount + 1 | 0,
+                    errorCount
+                  ];
+          } else {
+            return [
+                    correctCount,
+                    errorCount + 1 | 0
+                  ];
+          }
+        }), [
+        0,
+        0
+      ]);
   return _getCorrectRate(match[0], match[1]);
 }
 
@@ -484,15 +528,18 @@ function testCheckGradient(param) {
   return checkGradient(inputVector, labelVector);
 }
 
-console.log("begin test");
-
 testCheckGradient(undefined);
 
 console.log("finish test");
 
 var state = createState(784, 30, 10);
 
-var state$1 = train(state, 10);
+var state$1 = train(state, 100, 1);
+
+console.log([
+      "inference correctRate:",
+      inferenceWithSampleCount(state$1, 10000)
+    ]);
 
 export {
   _createWMatrix ,

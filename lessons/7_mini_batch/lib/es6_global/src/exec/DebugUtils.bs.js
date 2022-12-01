@@ -1,17 +1,18 @@
 
 
-import * as Js_math from "../../../../../../node_modules/rescript/lib/es6/js_math.js";
 import * as Matrix$Gender_analyze from "./Matrix.bs.js";
 import * as Vector$Gender_analyze from "./Vector.bs.js";
 
-var _isGradientExplosionOrDisappear = ((gradient) => { return Number.isNaN(gradient) || Math.abs(gradient) < 0.000000001 || !Number.isFinite(gradient) });
+var _isGradientExplosionOrDisappear = ((gradient) => { return Number.isNaN(gradient) || (gradient !== 0.0 && Math.abs(gradient) < 0.0000001)|| !Number.isFinite(gradient) || Math.abs(gradient) > 1.0 });
 
 function checkGradientExplosionOrDisappear(gradient) {
-  if (_isGradientExplosionOrDisappear(gradient)) {
-    console.log("checkGradientExplosionOrDisappear fail: " + gradient);
-    return ;
-  }
-  
+  return Matrix$Gender_analyze.mapi(gradient, (function (value, i) {
+                if (_isGradientExplosionOrDisappear(value)) {
+                  console.log("checkGradientExplosionOrDisappear fail: " + value);
+                  return ;
+                }
+                
+              }));
 }
 
 function _checkWeightValueAndGradientValueRadio(weightValue, gradientValue) {
@@ -19,7 +20,7 @@ function _checkWeightValueAndGradientValueRadio(weightValue, gradientValue) {
     return ;
   }
   var radio = Math.abs(weightValue) / Math.abs(gradientValue);
-  if (Js_math.floor(radio) > 50 || Js_math.floor(radio) < 5) {
+  if (radio > 5000 || Math.abs(weightValue) > 0.001 && radio < 0.1) {
     console.log("checkWeightValueAndGradientValueRadio fail: " + weightValue + ",  " + gradientValue + ", radio: " + radio);
     return ;
   }
@@ -41,7 +42,7 @@ function checkWeightMatrixAndGradientMatrixRadio(weight, gradient) {
 }
 
 function checkSigmoidInputTooLarge(input) {
-  if (input > 7) {
+  if (Math.abs(input) > 7) {
     console.log("input for sigmoid is too large: " + input);
     return ;
   }

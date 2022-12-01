@@ -43,8 +43,6 @@ let _handleInputVectorToAvoidTooLargeForSigmoid = (max, inputVector) => {
   inputVector->Vector.map(_handleInputValueToAvoidTooLargeForSigmoid(max))
 }
 
-/* ! begin change */
-
 let _activate_sigmoid_value = x => {
   DebugUtils.checkSigmoidInputTooLarge(x)
 
@@ -77,14 +75,10 @@ let _activate_softmax = net => {
   })
 }
 
-/* ! end change */
-
 let _forwardLayer2 = (activate, inputVector, state) => {
   let layerNet = Vector.transformMatrix(state.wMatrixBetweenLayer1Layer2, inputVector)
 
-  /* ! begin change */
   let layerOutputVector = layerNet->activate
-  /* ! end change */
 
   (layerNet, layerOutputVector)
 }
@@ -96,9 +90,7 @@ let _forwardLayer3 = (activate, layer2OutputVector, state) => {
     layer2OutputVector->Vector.push(1.0),
   )
 
-  /* ! begin change */
   let layerOutputVector = layerNet->activate
-  /* ! end change */
 
   (layerNet, layerOutputVector)
 }
@@ -140,11 +132,9 @@ let _bpLayer2Delta = (deriv, layer2Net, layer3Delta, state) => {
   })
 }
 
-/* ! begin change */
 let _computeDeltaForCrossEntropyLoss = (outputVector, labelVector) => {
   Vector.sub(outputVector, labelVector)
 }
-/* ! end change */
 
 let backward = (
   ((layer2Net, layer2OutputVector), (layer3Net, layer3OutputVector)): forwardOutput,
@@ -153,9 +143,7 @@ let backward = (
   inputVector: Vector.t,
   state: state,
 ): (layer2Gradient, layer3Gradient) => {
-  /* ! begin change */
   let layer3Delta = _computeDeltaForCrossEntropyLoss(layer3OutputVector, labelVector)
-  /* ! end change */
 
   let layer2Delta = _bpLayer2Delta(
     _deriv_sigmoid(
@@ -230,17 +218,17 @@ let _checkSampleCount = sampleCount => {
   sampleCount < 10 ? Exception.throwErr("error") : ()
 }
 
-/* ! begin change */
 module MiniBatch = {
-  let partition = (inputVectors, labelVectors, miniBatchSize) => {
-    inputVectors->ArraySt.length <= miniBatchSize ? Exception.throwErr("error") : ()
+  let partition = (data, labels, miniBatchSize) => {
+    data->ArraySt.length <= miniBatchSize ? Exception.throwErr("error") : ()
 
     let (miniBatchPartitionData, miniBatchData) =
-      inputVectors->ArraySt.reduceOneParami(
+      data->ArraySt.reduceOneParami(
         (. (miniBatchPartitionData, miniBatchData), inputVector, index) => {
-          let labelVector = labelVectors[index]
+          let labelVector = labels[index]
 
           let miniBatchData = miniBatchData->ArraySt.push((inputVector, labelVector))
+
           mod(index + 1, miniBatchSize) == 0
             ? {
                 (miniBatchPartitionData->ArraySt.push(miniBatchData), [])
@@ -256,66 +244,123 @@ module MiniBatch = {
   }
 }
 
-/* ! end change */
-
-let train = (state: state, sampleCount: int): state => {
+let train = (state: state, sampleCount: int, miniBatchSize: int): state => {
   _checkSampleCount(sampleCount)
 
-  //   let learnRate = 0.1
-  // let learnRate = 3.
-  let learnRate = 10.
-  //   let epochs = 1000
-  //   let epochs = 10
-  // let epochs = 1
-  // let epochs = 100
+  let layer2LearnRate = 10.0
+  let layer3LearnRate = 0.1
   let epochs = 50
-  // let epochs = 80
-
-  let mnistData = Mnist.set(sampleCount, 1)
-
-  //   let inputs =
-  //     mnistData.training->Mnist.getMnistData->ArraySt.map(d => d->Vector.create->_createInputVector)
-  //   let labels = mnistData.training->Mnist.getMnistLabels->ArraySt.map(Vector.create)
-
-  let features = mnistData.training->Mnist.getMnistData
-  let labels = mnistData.training->Mnist.getMnistLabels
-
-  //   let features = mnistData.training->Mnist.getMnistData->ArraySt.sliceFrom(-4)
-
-  //   let labels = mnistData.training->Mnist.getMnistLabels->ArraySt.sliceFrom(-4)
-
-  //   Js.log((data, labels))
-
-  /* ! begin change */
-  let featureVectors = features->ArraySt.map(_createInputVector)
-
-  let labelVectors = labels->ArraySt.map(Vector.create)
-  /* ! end change */
-
-  let n = features->ArraySt.length->Obj.magic
 
   ArraySt.range(0, epochs - 1)->ArraySt.reduceOneParam((. state, epoch) => {
-    /* ! begin change */
-    let miniBatchPartitionData = MiniBatch.partition(featureVectors, labelVectors, miniBatchSize)
+    let mnistData = Mnist.set(sampleCount, 1)
 
-    /* ! end change */
+    let features = mnistData.training->Mnist.getMnistData
+    let labels = mnistData.training->Mnist.getMnistLabels
 
-    /* ! begin change */
+    let n = features->ArraySt.length->Obj.magic
 
-    // reduce miniBatchPartitionData
-    //   reduce miniBatchData
-    //     sum layer2's ,layer3's gradient, correctCount, errorCount, lossSum
-    //   gradient = gradient sum /. miniBatchSize
-    //   update layer2's, layer3's wMatrix, correctCount, errorCount, lossSum
+    let miniBatchPartitionData = MiniBatch.partition(
+      features->ArraySt.map(_createInputVector),
+      labels,
+      miniBatchSize,
+    )
 
-    /* ! end change */
+    let layer1NodeCount = features[0] -> ArraySt.length
+    let layer2NodeCount = state.wMatrixBetweenLayer2Layer3->Matrix.getColCount - 1
+    let layer3NodeCount = state.wMatrixBetweenLayer2Layer3->Matrix.getRowCount
 
-    // mod(epoch, 10) == 0
+//     Js.log(
+// ( layer1NodeCount,
+// layer2NodeCount,
+// layer3NodeCount )
+//     )
+
+    let (state, ((correctCount, errorCount), lossSum)) =
+      miniBatchPartitionData->ArraySt.reduceOneParam(
+        (. (state, ((correctCount, errorCount), lossSum)), miniBatchData) => {
+          let (
+            (layer2GradientDataSum, layer3GradientDataSum),
+            ((correctCount, errorCount), lossSum),
+          ) =
+            miniBatchData->ArraySt.reduceOneParam(
+              (.
+                (
+                  (layer2GradientDataSum, layer3GradientDataSum),
+                  ((correctCount, errorCount), lossSum),
+                ),
+                (inputVector, labelVector),
+              ) => {
+                let (_, (_, layer3OutputVector)) as forwardOutput = forward(
+                  (
+                    _activate_sigmoid(
+                      _handleInputVectorToAvoidTooLargeForSigmoid(
+                        Matrix.getColCount(state.wMatrixBetweenLayer1Layer2),
+                      ),
+                    ),
+                    _activate_softmax,
+                  ),
+                  inputVector,
+                  state,
+                )
+
+                let (layer2Gradient, layer3Gradient) =
+                  forwardOutput->backward(n, labelVector, inputVector, state)
+
+                DebugUtils.checkGradientExplosionOrDisappear(
+                  layer3Gradient->Matrix.multiplyScalar(layer3LearnRate, _),
+                )->ignore
+
+                (
+                  (
+                    Matrix.add(layer2GradientDataSum, layer2Gradient),
+                    Matrix.add(layer3GradientDataSum, layer3Gradient),
+                  ),
+                  (
+                    _isCorrectInference(labelVector, layer3OutputVector)
+                      ? (correctCount->succ, errorCount)
+                      : (correctCount, errorCount->succ),
+                    lossSum +. _computeCrossEntroyLoss(labelVector, layer3OutputVector),
+                  ),
+                )
+              },
+              (
+                (
+                  _createWMatrix(() => 0., layer1NodeCount, layer2NodeCount),
+                  _createWMatrix(() => 0., layer2NodeCount, layer3NodeCount),
+                ),
+                ((correctCount, errorCount), lossSum),
+              ),
+            )
+
+          let layer2Gradient = Matrix.multiplyScalar(
+            1. /. miniBatchSize->Obj.magic,
+            layer2GradientDataSum,
+          )
+          let layer3Gradient = Matrix.multiplyScalar(
+            1. /. miniBatchSize->Obj.magic,
+            layer3GradientDataSum,
+          )
+
+          (
+            {
+              wMatrixBetweenLayer1Layer2: Matrix.sub(
+                state.wMatrixBetweenLayer1Layer2,
+                layer2Gradient->Matrix.multiplyScalar(layer2LearnRate, _),
+              ),
+              wMatrixBetweenLayer2Layer3: Matrix.sub(
+                state.wMatrixBetweenLayer2Layer3,
+                layer3Gradient->Matrix.multiplyScalar(layer3LearnRate, _),
+              ),
+            },
+            ((correctCount, errorCount), lossSum),
+          )
+        },
+        (state, ((0, 0), 0.)),
+      )
+
     true
       ? {
-          /* ! begin change */
           Js.log(("loss:", lossSum /. sampleCount->Obj.magic))
-          /* ! end change */
 
           Js.log(("getCorrectRate:", _getCorrectRate(correctCount, errorCount)))
 
@@ -335,11 +380,6 @@ let inference = (state: state, feature: feature) => {
           Matrix.getColCount(state.wMatrixBetweenLayer1Layer2),
         ),
       ),
-      // _activate_sigmoid(
-      //   _handleInputVectorToAvoidTooLargeForSigmoid(
-      //     Matrix.getColCount(state.wMatrixBetweenLayer2Layer3),
-      //   ),
-      // ),
       _activate_softmax,
     ),
     inputVector,
@@ -368,7 +408,7 @@ let inferenceWithSampleCount = (state: state, sampleCount: int) => {
       _isCorrectInference(testLabels[i]->Vector.create, inference(state, data))
         ? (correctCount->succ, errorCount)
         : (correctCount, errorCount->succ)
-    }, (0, 0))->Log.printForDebug
+    }, (0, 0))
 
   _getCorrectRate(correctCount, errorCount)
 }
@@ -377,11 +417,9 @@ let _emptyHandleInputValueToAvoidTooLargeForSigmoid = inputValue => {
   inputValue
 }
 
-/* ! begin change */
 let _emptyHandleInputVectorToAvoidTooLargeForSigmoid = inputVector => {
   inputVector
 }
-/* ! end change */
 
 let checkGradient = (inputVector, labelVector) => {
   let _checkWeight = (
@@ -488,7 +526,6 @@ let checkGradient = (inputVector, labelVector) => {
 
   let state = createState(2, 2, 1)
 
-  /* ! begin change */
   let ((_, layer2OutputVector), (layer3Net, layer3OutputVector)) = forward(
     (
       _activate_sigmoid(_emptyHandleInputVectorToAvoidTooLargeForSigmoid),
@@ -497,7 +534,6 @@ let checkGradient = (inputVector, labelVector) => {
     inputVector,
     state,
   )
-  /* ! end change */
 
   let n = 1.0
 
@@ -577,14 +613,12 @@ let testCheckGradient = () => {
   checkGradient(inputVector, labelVector)
 }
 
-Js.log("begin test")
 testCheckGradient()
 Js.log("finish test")
 
 let state = createState(784, 30, 10)
 
-// let state = train(state, 200)
-let state = train(state, 10)
 // let state = train(state, 100)
+let state = train(state, 100, 1)
 
-// Js.log(("inference correctRate:", inferenceWithSampleCount(state, 100)))
+Js.log(("inference correctRate:", inferenceWithSampleCount(state, 10000)))
