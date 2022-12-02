@@ -238,9 +238,9 @@ let train = (state: state, sampleCount: int, miniBatchSize: int): state => {
 
     true
       ? {
-          Js.log(("loss:", lossSum /. sampleCount->Obj.magic))
+          // Js.log(("loss:", lossSum /. sampleCount->Obj.magic))
 
-          Js.log(("getCorrectRate:", _getCorrectRate(correctCount, errorCount)))
+          // Js.log(("getCorrectRate:", _getCorrectRate(correctCount, errorCount)))
 
           state
         }

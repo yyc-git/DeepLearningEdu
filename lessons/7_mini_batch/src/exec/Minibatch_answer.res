@@ -220,7 +220,7 @@ let _checkSampleCount = sampleCount => {
 
 module MiniBatch = {
   let partition = (data, labels, miniBatchSize) => {
-    data->ArraySt.length <= miniBatchSize ? Exception.throwErr("error") : ()
+    data->ArraySt.length < miniBatchSize ? Exception.throwErr("error") : ()
 
     let (miniBatchPartitionData, miniBatchData) =
       data->ArraySt.reduceOneParami(
@@ -265,7 +265,7 @@ let train = (state: state, sampleCount: int, miniBatchSize: int): state => {
       miniBatchSize,
     )
 
-    let layer1NodeCount = features[0] -> ArraySt.length
+    let layer1NodeCount = features[0]->ArraySt.length
     let layer2NodeCount = state.wMatrixBetweenLayer2Layer3->Matrix.getColCount - 1
     let layer3NodeCount = state.wMatrixBetweenLayer2Layer3->Matrix.getRowCount
 
@@ -613,6 +613,13 @@ Js.log("finish test")
 let state = createState(784, 30, 10)
 
 // let state = train(state, 100)
+// let state = train(state, 1000, 1)
+// let state = train(state, 1000, 2)
+// let state = train(state, 1000, 1)
 let state = train(state, 100, 1)
+// let state = train(state, 200, 2)
+// let state = train(state, 1000, 1000)
+// let state = train(state, 100, 100)
+// let state = train(state, 100, 2)
 
 Js.log(("inference correctRate:", inferenceWithSampleCount(state, 10000)))
