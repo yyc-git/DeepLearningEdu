@@ -1,10 +1,10 @@
-使用小批量随机梯度下降
+卷积层的前向传播
+最大池化层的前向传播
+    forward test
 
-
-
-
-卷积层的前向和后向传播
-    forward, backward test
+卷积层的后向传播
+最大池化层的后向传播
+     backward test
 
 
 卷积层的梯度检测

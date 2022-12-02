@@ -202,7 +202,7 @@ function _checkSampleCount(sampleCount) {
 }
 
 function partition(data, labels, miniBatchSize) {
-  if (ArraySt$Gender_analyze.length(data) <= miniBatchSize) {
+  if (ArraySt$Gender_analyze.length(data) < miniBatchSize) {
     Exception$Gender_analyze.throwErr("error");
   }
   return ArraySt$Gender_analyze.reduceOneParami(data, (function (param, inputVector, index) {
@@ -534,7 +534,7 @@ console.log("finish test");
 
 var state = createState(784, 30, 10);
 
-var state$1 = train(state, 100, 1);
+var state$1 = train(state, 100, 100);
 
 console.log([
       "inference correctRate:",

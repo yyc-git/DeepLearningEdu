@@ -68,7 +68,7 @@ function _crossCorrelation3D(inputs, weights, param, stride, bias) {
 
 var _elementWiseOp = Matrix$8_cnn.map;
 
-function forward(state, inputs) {
+function forward(activate, state, inputs) {
   var paddedInputs = _padding(inputs, state.zeroPadding);
   var match = ArraySt$8_cnn.reduceOneParam(ArraySt$8_cnn.range(0, state.filterNumber - 1 | 0), (function (param, i) {
           var filterState = ImmutableSparseMap$8_cnn.getExn(state.filterStates, i);
@@ -76,7 +76,7 @@ function forward(state, inputs) {
                 state.outputWidth,
                 state.outputHeight
               ], state.stride, Filter$8_cnn.getBias(filterState));
-          var output = Matrix$8_cnn.map(net, ReluActivator$8_cnn.forward);
+          var output = Matrix$8_cnn.map(net, activate);
           return [
                   ImmutableSparseMap$8_cnn.set(param[0], i, net),
                   ImmutableSparseMap$8_cnn.set(param[1], i, output)
@@ -183,7 +183,7 @@ function bpGradient(state, paddedInputs, deltaMap) {
 }
 
 function backward(state, inputs, deltaMap) {
-  var match = forward(state, inputs);
+  var match = forward(ReluActivator$8_cnn.forward, state, inputs);
   bpDeltaMap(state, inputs, deltaMap);
   return bpGradient(state, match[0], deltaMap);
 }
@@ -209,8 +209,7 @@ function update(state) {
 }
 
 function init(param) {
-  var inputs = NP$8_cnn.createMatrixMapByDataArr([
-        [
+  var inputs = NP$8_cnn.createMatrixMapByDataArr([[
           [
             0,
             1,
@@ -246,84 +245,8 @@ function init(param) {
             0,
             2
           ]
-        ],
-        [
-          [
-            1,
-            0,
-            2,
-            2,
-            0
-          ],
-          [
-            0,
-            0,
-            0,
-            2,
-            0
-          ],
-          [
-            1,
-            2,
-            1,
-            2,
-            1
-          ],
-          [
-            1,
-            0,
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            2,
-            1,
-            1,
-            1
-          ]
-        ],
-        [
-          [
-            2,
-            1,
-            2,
-            0,
-            0
-          ],
-          [
-            1,
-            0,
-            0,
-            1,
-            0
-          ],
-          [
-            0,
-            2,
-            1,
-            0,
-            1
-          ],
-          [
-            0,
-            1,
-            2,
-            2,
-            2
-          ],
-          [
-            2,
-            1,
-            0,
-            0,
-            1
-          ]
-        ]
-      ]);
-  var deltaMap = NP$8_cnn.createMatrixMapByDataArr([
-        [
+        ]]);
+  var deltaMap = NP$8_cnn.createMatrixMapByDataArr([[
           [
             0,
             1,
@@ -339,148 +262,72 @@ function init(param) {
             0,
             0
           ]
-        ],
-        [
-          [
-            1,
-            0,
-            2
-          ],
-          [
-            0,
-            0,
-            0
-          ],
-          [
-            1,
-            2,
-            1
-          ]
-        ]
-      ]);
-  var state = create(5, 5, 3, 3, 3, 2, 1, 2, 0.001);
+        ]]);
+  var state = create(5, 5, 1, 3, 3, 1, 1, 2, 0.001);
   var init$1 = ImmutableSparseMap$8_cnn.getExn(state.filterStates, 0);
-  var init$2 = ImmutableSparseMap$8_cnn.getExn(state.filterStates, 1);
   var state_inputWidth = state.inputWidth;
   var state_inputHeight = state.inputHeight;
   var state_depthNumber = state.depthNumber;
   var state_filterWidth = state.filterWidth;
   var state_filterHeight = state.filterHeight;
   var state_filterNumber = state.filterNumber;
-  var state_filterStates = ImmutableSparseMap$8_cnn.set(ImmutableSparseMap$8_cnn.set(ImmutableSparseMap$8_cnn.createEmpty(undefined, undefined), 0, {
-            weights: NP$8_cnn.createMatrixMapByDataArr([
-                  [
-                    [
-                      -1,
-                      1,
-                      0
-                    ],
-                    [
-                      0,
-                      1,
-                      0
-                    ],
-                    [
-                      0,
-                      1,
-                      1
-                    ]
-                  ],
-                  [
-                    [
-                      -1,
-                      -1,
-                      0
-                    ],
-                    [
-                      0,
-                      0,
-                      0
-                    ],
-                    [
-                      0,
-                      -1,
-                      0
-                    ]
-                  ],
-                  [
-                    [
-                      0,
-                      0,
-                      -1
-                    ],
-                    [
-                      0,
-                      1,
-                      0
-                    ],
-                    [
-                      1,
-                      -1,
-                      -1
-                    ]
-                  ]
-                ]),
-            bias: 1,
-            weightGradients: init$1.weightGradients,
-            biasGradient: init$1.biasGradient
-          }), 1, {
+  var state_filterStates = ImmutableSparseMap$8_cnn.set(ImmutableSparseMap$8_cnn.createEmpty(undefined, undefined), 0, {
         weights: NP$8_cnn.createMatrixMapByDataArr([
               [
                 [
-                  1,
-                  1,
-                  -1
-                ],
-                [
                   -1,
-                  -1,
-                  1
+                  1,
+                  0
                 ],
                 [
                   0,
-                  -1,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  1,
                   1
                 ]
               ],
               [
                 [
-                  0,
-                  1,
+                  -1,
+                  -1,
                   0
                 ],
                 [
-                  -1,
                   0,
-                  -1
+                  0,
+                  0
                 ],
                 [
+                  0,
                   -1,
-                  1,
                   0
                 ]
               ],
               [
                 [
-                  -1,
                   0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  1,
                   0
                 ],
                 [
+                  1,
                   -1,
-                  0,
-                  1
-                ],
-                [
-                  -1,
-                  0,
-                  0
+                  -1
                 ]
               ]
             ]),
-        bias: 0,
-        weightGradients: init$2.weightGradients,
-        biasGradient: init$2.biasGradient
+        bias: 1,
+        weightGradients: init$1.weightGradients,
+        biasGradient: init$1.biasGradient
       });
   var state_zeroPadding = state.zeroPadding;
   var state_stride = state.stride;
@@ -511,7 +358,7 @@ function init(param) {
 function test(param) {
   var state = param[2];
   var inputs = param[0];
-  var match = forward(state, inputs);
+  var match = forward(ReluActivator$8_cnn.forward, state, inputs);
   Log$8_cnn.printForDebug([
         "f:",
         match[1][0]
@@ -526,9 +373,13 @@ function checkGradient(param) {
   var match = init(undefined);
   var state = match[2];
   var inputs = match[0];
-  var match$1 = forward(state, inputs);
+  var match$1 = forward(ReluActivator$8_cnn.forward, state, inputs);
+  var match$2 = match$1[1];
+  var outputMap = match$2[1];
+  console.log(outputMap);
+  console.log(inputs);
   NP$8_cnn.getMatrixMapSize(match[1]);
-  var deltaMap = NP$8_cnn.mapMatrixMap(match$1[1][0], (function (matrix) {
+  var nextLayerDeltaMap = NP$8_cnn.mapMatrixMap(match$2[0], (function (matrix) {
           return Matrix$8_cnn.map(matrix, (function (value) {
                         if (value > 0) {
                           return 1;
@@ -537,7 +388,8 @@ function checkGradient(param) {
                         }
                       }));
         }));
-  var state$1 = backward(state, inputs, deltaMap);
+  var layerDeltaMap = bpDeltaMap(state, outputMap, nextLayerDeltaMap);
+  var state$1 = bpGradient(state, match$1[0], layerDeltaMap);
   var filterState = ImmutableSparseMap$8_cnn.getExn(state$1.filterStates, 0);
   var weights = filterState.weights;
   return ImmutableSparseMap$8_cnn.forEachi(filterState.weightGradients, (function (weightGradient, depthIndex) {
@@ -575,8 +427,12 @@ function checkGradient(param) {
                                 outputHeight: state1_outputHeight,
                                 leraningRate: state1_leraningRate
                               };
-                              var match = forward(state1, inputs);
-                              var err1 = NP$8_cnn.sumMatrixMap(match[1][1]);
+                              var _activate_linear = function (net) {
+                                return net;
+                              };
+                              var match = forward(ReluActivator$8_cnn.forward, state1, inputs);
+                              var match$1 = forward(_activate_linear, state$1, match[1][1]);
+                              var err1 = NP$8_cnn.sumMatrixMap(match$1[1][1]);
                               var state2_inputWidth = state$1.inputWidth;
                               var state2_inputHeight = state$1.inputHeight;
                               var state2_depthNumber = state$1.depthNumber;
@@ -608,11 +464,12 @@ function checkGradient(param) {
                                 outputHeight: state2_outputHeight,
                                 leraningRate: state2_leraningRate
                               };
-                              var match$1 = forward(state2, inputs);
-                              var err2 = NP$8_cnn.sumMatrixMap(match$1[1][1]);
+                              var match$2 = forward(ReluActivator$8_cnn.forward, state2, inputs);
+                              var match$3 = forward(_activate_linear, state$1, match$2[1][1]);
+                              var err2 = NP$8_cnn.sumMatrixMap(match$3[1][1]);
                               var expectedGradient = (err1 - err2) / (2 * 10e-4);
                               var result = FloatUtils$8_cnn.truncateFloatValue(expectedGradient, 4) === FloatUtils$8_cnn.truncateFloatValue(actualGradient, 4);
-                              console.log("check gradient -> weights(" + depthIndex + "  }, " + rowIndex + ", " + colIndex + "): " + result);
+                              console.log("check gradient -> weights(" + depthIndex + "), " + rowIndex + ", " + colIndex + "): " + result);
                               
                             }));
               }));
@@ -624,7 +481,7 @@ var Test = {
   checkGradient: checkGradient
 };
 
-test(init(undefined));
+checkGradient(undefined);
 
 export {
   create ,

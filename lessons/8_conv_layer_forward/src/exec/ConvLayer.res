@@ -141,7 +141,9 @@ let _elementWiseOp = (matrix, opFunc) => {
   matrix->Matrix.map(opFunc)
 }
 
-let forward = (state, inputs: ImmutableSparseMapType.t<depthIndex, Matrix.t>) => {
+// let forward = (state, inputs: ImmutableSparseMapType.t<depthIndex, Matrix.t>) => {
+// let forward = (state, inputs: ImmutableSparseMapType.t<depthIndex, Matrix.t>) => {
+let forward = (activate, state, inputs: ImmutableSparseMapType.t<depthIndex, Matrix.t>) => {
   let paddedInputs = _padding(inputs, state.zeroPadding)
 
   // let outputMap = NP.zeroMatrixMap(state.filterNumber, state.outputHeight, state.outputWidth)
@@ -160,7 +162,10 @@ let forward = (state, inputs: ImmutableSparseMapType.t<depthIndex, Matrix.t>) =>
 
       // net->Log.printForDebug->ignore
 
-      let output = net->_elementWiseOp(ReluActivator.forward)
+      let output = net->_elementWiseOp(
+        // ReluActivator.forward
+        activate,
+      )
 
       (nets->ImmutableSparseMap.set(i, net), outputMap->ImmutableSparseMap.set(i, output))
     }, (ImmutableSparseMap.createEmpty(), ImmutableSparseMap.createEmpty()))
@@ -310,7 +315,8 @@ let bpGradient = (state, paddedInputs, deltaMap) => {
 }
 
 let backward = (state, inputs, deltaMap) => {
-  let (paddedInputs, _) = forward(state, inputs)
+  // let (paddedInputs, _) = forward(state, inputs)
+  let (paddedInputs, _) = forward(ReluActivator.forward, state, inputs)
 
   // let updatedDelta = bpDeltaMap(state, nets, deltaMap)
   let lastLayerDeltaMap = bpDeltaMap(state, inputs, deltaMap)
@@ -345,26 +351,26 @@ module Test = {
           [0., 1., 1., 0., 0.],
           [1., 2., 0., 0., 2.],
         ],
-        [
-          [1., 0., 2., 2., 0.],
-          [0., 0., 0., 2., 0.],
-          [1., 2., 1., 2., 1.],
-          [1., 0., 0., 0., 0.],
-          [1., 2., 1., 1., 1.],
-        ],
-        [
-          [2., 1., 2., 0., 0.],
-          [1., 0., 0., 1., 0.],
-          [0., 2., 1., 0., 1.],
-          [0., 1., 2., 2., 2.],
-          [2., 1., 0., 0., 1.],
-        ],
+        // [
+        //   [1., 0., 2., 2., 0.],
+        //   [0., 0., 0., 2., 0.],
+        //   [1., 2., 1., 2., 1.],
+        //   [1., 0., 0., 0., 0.],
+        //   [1., 2., 1., 1., 1.],
+        // ],
+        // [
+        //   [2., 1., 2., 0., 0.],
+        //   [1., 0., 0., 1., 0.],
+        //   [0., 2., 1., 0., 1.],
+        //   [0., 1., 2., 2., 2.],
+        //   [2., 1., 0., 0., 1.],
+        // ],
       ]->NP.createMatrixMapByDataArr
 
     let deltaMap =
       [
         [[0., 1., 1.], [2., 2., 2.], [1., 0., 0.]],
-        [[1., 0., 2.], [0., 0., 0.], [1., 2., 1.]],
+        // [[1., 0., 2.], [0., 0., 0.], [1., 2., 1.]],
       ]->NP.createMatrixMapByDataArr
 
     // inputWidth,
@@ -376,7 +382,8 @@ module Test = {
     // zeroPadding,
     // stride,
     // leraningRate,
-    let state = create(5, 5, 3, 3, 3, 2, 1, 2, 0.001)
+    // let state = create(5, 5, 3, 3, 3, 2, 1, 2, 0.001)
+    let state = create(5, 5, 1, 3, 3, 1, 1, 2, 0.001)
 
     let state = {
       ...state,
@@ -395,25 +402,26 @@ module Test = {
           }: Filter.state
         ),
       )
-      ->ImmutableSparseMap.set(
-        1,
-        {
-          ...state.filterStates->ImmutableSparseMap.getExn(1),
-          weights: [
-            [[1., 1., -1.], [-1., -1., 1.], [0., -1., 1.]],
-            [[0., 1., 0.], [-1., 0., -1.], [-1., 1., 0.]],
-            [[-1., 0., 0.], [-1., 0., 1.], [-1., 0., 0.]],
-          ]->NP.createMatrixMapByDataArr,
-          bias: 0.,
-        },
-      ),
+      // ->ImmutableSparseMap.set(
+      //   1,
+      //   {
+      //     ...state.filterStates->ImmutableSparseMap.getExn(1),
+      //     weights: [
+      //       [[1., 1., -1.], [-1., -1., 1.], [0., -1., 1.]],
+      //       [[0., 1., 0.], [-1., 0., -1.], [-1., 1., 0.]],
+      //       [[-1., 0., 0.], [-1., 0., 1.], [-1., 0., 0.]],
+      //     ]->NP.createMatrixMapByDataArr,
+      //     bias: 0.,
+      //   },
+      // ),
     }
 
     (inputs, deltaMap, state)
   }
 
   let test = ((inputs, deltaMap, state)) => {
-    let (paddedInputs, (nets, outputMap)) = forward(state, inputs)
+    // let (paddedInputs, (nets, outputMap)) = forward(state, inputs)
+    let (paddedInputs, (nets, outputMap)) = forward(ReluActivator.forward, state, inputs)
 
     // inputs->Log.printForDebug-> ignore
     // ("f:", paddedInputs)->Log.printForDebug->ignore
@@ -435,14 +443,27 @@ module Test = {
 
     let (inputs, deltaMap, state) = init()
 
-    let (paddedInputs, (nets, outputMap)) = forward(state, inputs)
+    // let (paddedInputs, (nets, outputMap)) = forward(state, inputs)
+    let (paddedInputs, (nets, outputMap)) = forward(ReluActivator.forward, state, inputs)
+
+    // let (paddedInputs, _) = forward(state, inputs)
+
+    Js.log(outputMap)
+    Js.log(inputs)
 
     let (width, height, depth) = deltaMap->NP.getMatrixMapSize
     /* ! 因为误差函数为所有节点输出项之和，所以: if netValue > 0 then delta = 1, else delta = 0 */
-    let deltaMap =
+    let nextLayerDeltaMap =
       nets->NP.mapMatrixMap(matrix => matrix->Matrix.map(value => value > 0. ? 1. : 0.))
 
-    let state = backward(state, inputs, deltaMap)
+      TODO fix
+
+    // let lastLayerDeltaMap = bpDeltaMap(state, inputs, deltaMap)
+    let layerDeltaMap = bpDeltaMap(state, outputMap, nextLayerDeltaMap)
+
+    let state = bpGradient(state, paddedInputs, layerDeltaMap)
+
+    // let state = backward(state, inputs, deltaMap)
 
     let epsilon = 10e-4
     let {weightGradients, weights} as filterState: Filter.state =
@@ -469,9 +490,14 @@ module Test = {
           ),
         }
 
-        let (_, (_, outputMap1)) = forward(state1, inputs)
+        let _activate_linear = net => {
+          net
+        }
 
-        let err1 = _computeError(outputMap1)
+        let (_, (_, outputMap1)) = forward(ReluActivator.forward, state1, inputs)
+        let (_, (_, outputMap2)) = forward(_activate_linear, state, outputMap1)
+
+        let err1 = _computeError(outputMap2)
 
         let state2 = {
           ...state,
@@ -489,10 +515,12 @@ module Test = {
           ),
         }
 
-        let (_, (_, outputMap2)) = forward(state2, inputs)
+        // let (_, (_, outputMap2)) = forward(state2, inputs)
+
+        let (_, (_, outputMap1)) = forward(ReluActivator.forward, state2, inputs)
+        let (_, (_, outputMap2)) = forward(_activate_linear, state, outputMap1)
 
         let err2 = _computeError(outputMap2)
-        // let err2 = _computeError(outputMap, outputMap2)
 
         let expectedGradient = (err1 -. err2) /. (2. *. epsilon)
 
@@ -501,7 +529,7 @@ module Test = {
             FloatUtils.truncateFloatValue(actualGradient, 4)
 
         Js.log({
-          j`check gradient -> weights($depthIndex  }, $rowIndex, $colIndex): $result`
+          j`check gradient -> weights($depthIndex), $rowIndex, $colIndex): $result`
         })
 
         // (expectedGradient, actualGradient)->Log.printForDebug->ignore
@@ -510,6 +538,6 @@ module Test = {
   }
 }
 
-Test.init()->Test.test
+// Test.init()->Test.test
 
-// Test.checkGradient()
+Test.checkGradient()

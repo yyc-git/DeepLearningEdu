@@ -1,18 +1,17 @@
+'use strict';
 
-
-import * as Curry from "../../../../../../node_modules/rescript/lib/es6/curry.js";
-import * as Mnist from "mnist";
-import * as Caml_array from "../../../../../../node_modules/rescript/lib/es6/caml_array.js";
-import * as Caml_int32 from "../../../../../../node_modules/rescript/lib/es6/caml_int32.js";
-import * as Mnist$Gender_analyze from "./mnist.bs.js";
-import * as Matrix$Gender_analyze from "./Matrix.bs.js";
-import * as Vector$Gender_analyze from "./Vector.bs.js";
-import * as ArraySt$Gender_analyze from "./ArraySt.bs.js";
-import * as OptionSt$Gender_analyze from "./OptionSt.bs.js";
-import * as Exception$Gender_analyze from "./Exception.bs.js";
-import * as DebugUtils$Gender_analyze from "./DebugUtils.bs.js";
-import * as FloatUtils$Gender_analyze from "./FloatUtils.bs.js";
-import * as MatrixUtils$Gender_analyze from "./MatrixUtils.bs.js";
+var Curry = require("rescript/lib/js/curry.js");
+var Mnist = require("mnist");
+var Caml_array = require("rescript/lib/js/caml_array.js");
+var Mnist$Gender_analyze = require("./mnist.bs.js");
+var Matrix$Gender_analyze = require("./Matrix.bs.js");
+var Vector$Gender_analyze = require("./Vector.bs.js");
+var ArraySt$Gender_analyze = require("./ArraySt.bs.js");
+var OptionSt$Gender_analyze = require("./OptionSt.bs.js");
+var Exception$Gender_analyze = require("./Exception.bs.js");
+var DebugUtils$Gender_analyze = require("./DebugUtils.bs.js");
+var FloatUtils$Gender_analyze = require("./FloatUtils.bs.js");
+var MatrixUtils$Gender_analyze = require("./MatrixUtils.bs.js");
 
 function _createWMatrix(getValue, firstLayerNodeCount, secondLayerNodeCount) {
   var col = firstLayerNodeCount + 1 | 0;
@@ -201,147 +200,14 @@ function _checkSampleCount(sampleCount) {
   
 }
 
-function partition(data, labels, miniBatchSize) {
-  if (ArraySt$Gender_analyze.length(data) <= miniBatchSize) {
-    Exception$Gender_analyze.throwErr("error");
-  }
-  return ArraySt$Gender_analyze.reduceOneParami(data, (function (param, inputVector, index) {
-                  var miniBatchPartitionData = param[0];
-                  var labelVector = Caml_array.get(labels, index);
-                  var miniBatchData = ArraySt$Gender_analyze.push(param[1], [
-                        inputVector,
-                        labelVector
-                      ]);
-                  if (Caml_int32.mod_(index + 1 | 0, miniBatchSize) === 0) {
-                    return [
-                            ArraySt$Gender_analyze.push(miniBatchPartitionData, miniBatchData),
-                            []
-                          ];
-                  } else {
-                    return [
-                            miniBatchPartitionData,
-                            miniBatchData
-                          ];
-                  }
-                }), [
-                [],
-                []
-              ])[0];
-}
-
-var MiniBatch = {
-  partition: partition
-};
-
 function train(state, sampleCount, miniBatchSize) {
   _checkSampleCount(sampleCount);
   return ArraySt$Gender_analyze.reduceOneParam(ArraySt$Gender_analyze.range(0, 49), (function (state, epoch) {
                 var mnistData = Mnist.set(sampleCount, 1);
                 var features = Mnist$Gender_analyze.getMnistData(mnistData.training);
-                var labels = Mnist$Gender_analyze.getMnistLabels(mnistData.training);
-                var n = ArraySt$Gender_analyze.length(features);
-                var miniBatchPartitionData = partition(ArraySt$Gender_analyze.map(features, _createInputVector), labels, miniBatchSize);
-                var layer1NodeCount = ArraySt$Gender_analyze.length(Caml_array.get(features, 0));
-                var layer2NodeCount = Matrix$Gender_analyze.getColCount(state.wMatrixBetweenLayer2Layer3) - 1 | 0;
-                var layer3NodeCount = Matrix$Gender_analyze.getRowCount(state.wMatrixBetweenLayer2Layer3);
-                var match = ArraySt$Gender_analyze.reduceOneParam(miniBatchPartitionData, (function (param, miniBatchData) {
-                        var match = param[1];
-                        var match$1 = match[0];
-                        var state = param[0];
-                        var match$2 = ArraySt$Gender_analyze.reduceOneParam(miniBatchData, (function (param, param$1) {
-                                var labelVector = param$1[1];
-                                var inputVector = param$1[0];
-                                var match = param[1];
-                                var match$1 = match[0];
-                                var errorCount = match$1[1];
-                                var correctCount = match$1[0];
-                                var match$2 = param[0];
-                                var partial_arg = Matrix$Gender_analyze.getColCount(state.wMatrixBetweenLayer1Layer2);
-                                var partial_arg$1 = function (param) {
-                                  return _handleInputVectorToAvoidTooLargeForSigmoid(partial_arg, param);
-                                };
-                                var forwardOutput = forward([
-                                      (function (param) {
-                                          return Vector$Gender_analyze.map(Curry._1(partial_arg$1, param), _activate_sigmoid_value);
-                                        }),
-                                      _activate_softmax
-                                    ], inputVector, state);
-                                var layer3OutputVector = forwardOutput[1][1];
-                                var match$3 = backward(forwardOutput, n, labelVector, inputVector, state);
-                                var layer3Gradient = match$3[1];
-                                DebugUtils$Gender_analyze.checkGradientExplosionOrDisappear(Matrix$Gender_analyze.multiplyScalar(0.1, layer3Gradient));
-                                return [
-                                        [
-                                          Matrix$Gender_analyze.add(match$2[0], match$3[0]),
-                                          Matrix$Gender_analyze.add(match$2[1], layer3Gradient)
-                                        ],
-                                        [
-                                          _isCorrectInference(labelVector, layer3OutputVector) ? [
-                                              correctCount + 1 | 0,
-                                              errorCount
-                                            ] : [
-                                              correctCount,
-                                              errorCount + 1 | 0
-                                            ],
-                                          match[1] + _computeCrossEntroyLoss(labelVector, layer3OutputVector)
-                                        ]
-                                      ];
-                              }), [
-                              [
-                                _createWMatrix((function (param) {
-                                        return 0;
-                                      }), layer1NodeCount, layer2NodeCount),
-                                _createWMatrix((function (param) {
-                                        return 0;
-                                      }), layer2NodeCount, layer3NodeCount)
-                              ],
-                              [
-                                [
-                                  match$1[0],
-                                  match$1[1]
-                                ],
-                                match[1]
-                              ]
-                            ]);
-                        var match$3 = match$2[1];
-                        var match$4 = match$3[0];
-                        var match$5 = match$2[0];
-                        var layer2Gradient = Matrix$Gender_analyze.multiplyScalar(1 / miniBatchSize, match$5[0]);
-                        var layer3Gradient = Matrix$Gender_analyze.multiplyScalar(1 / miniBatchSize, match$5[1]);
-                        return [
-                                {
-                                  wMatrixBetweenLayer1Layer2: Matrix$Gender_analyze.sub(state.wMatrixBetweenLayer1Layer2, Matrix$Gender_analyze.multiplyScalar(10.0, layer2Gradient)),
-                                  wMatrixBetweenLayer2Layer3: Matrix$Gender_analyze.sub(state.wMatrixBetweenLayer2Layer3, Matrix$Gender_analyze.multiplyScalar(0.1, layer3Gradient))
-                                },
-                                [
-                                  [
-                                    match$4[0],
-                                    match$4[1]
-                                  ],
-                                  match$3[1]
-                                ]
-                              ];
-                      }), [
-                      state,
-                      [
-                        [
-                          0,
-                          0
-                        ],
-                        0
-                      ]
-                    ]);
-                var match$1 = match[1];
-                var match$2 = match$1[0];
-                console.log([
-                      "loss:",
-                      match$1[1] / sampleCount
-                    ]);
-                console.log([
-                      "getCorrectRate:",
-                      _getCorrectRate(match$2[0], match$2[1])
-                    ]);
-                return match[0];
+                Mnist$Gender_analyze.getMnistLabels(mnistData.training);
+                ArraySt$Gender_analyze.length(features);
+                return state;
               }), state);
 }
 
@@ -541,41 +407,37 @@ console.log([
       inferenceWithSampleCount(state$1, 10000)
     ]);
 
-export {
-  _createWMatrix ,
-  createState ,
-  _handleInputValueToAvoidTooLargeForSigmoid ,
-  _handleInputVectorToAvoidTooLargeForSigmoid ,
-  _activate_sigmoid_value ,
-  _activate_sigmoid ,
-  _deriv_sigmoid ,
-  _activate_linear ,
-  _deriv_linear ,
-  _activate_softmax ,
-  _forwardLayer2 ,
-  _forwardLayer3 ,
-  forward ,
-  _bpLayer3Delta ,
-  _bpLayer2Delta ,
-  _computeDeltaForCrossEntropyLoss ,
-  backward ,
-  _convertLabelToFloat ,
-  _computeLoss ,
-  _createInputVector ,
-  _getOutputNumber ,
-  _isCorrectInference ,
-  _getCorrectRate ,
-  _computeCrossEntroyLoss ,
-  _checkSampleCount ,
-  MiniBatch ,
-  train ,
-  inference ,
-  inferenceWithSampleCount ,
-  _emptyHandleInputValueToAvoidTooLargeForSigmoid ,
-  _emptyHandleInputVectorToAvoidTooLargeForSigmoid ,
-  checkGradient ,
-  testCheckGradient ,
-  state$1 as state,
-  
-}
+exports._createWMatrix = _createWMatrix;
+exports.createState = createState;
+exports._handleInputValueToAvoidTooLargeForSigmoid = _handleInputValueToAvoidTooLargeForSigmoid;
+exports._handleInputVectorToAvoidTooLargeForSigmoid = _handleInputVectorToAvoidTooLargeForSigmoid;
+exports._activate_sigmoid_value = _activate_sigmoid_value;
+exports._activate_sigmoid = _activate_sigmoid;
+exports._deriv_sigmoid = _deriv_sigmoid;
+exports._activate_linear = _activate_linear;
+exports._deriv_linear = _deriv_linear;
+exports._activate_softmax = _activate_softmax;
+exports._forwardLayer2 = _forwardLayer2;
+exports._forwardLayer3 = _forwardLayer3;
+exports.forward = forward;
+exports._bpLayer3Delta = _bpLayer3Delta;
+exports._bpLayer2Delta = _bpLayer2Delta;
+exports._computeDeltaForCrossEntropyLoss = _computeDeltaForCrossEntropyLoss;
+exports.backward = backward;
+exports._convertLabelToFloat = _convertLabelToFloat;
+exports._computeLoss = _computeLoss;
+exports._createInputVector = _createInputVector;
+exports._getOutputNumber = _getOutputNumber;
+exports._isCorrectInference = _isCorrectInference;
+exports._getCorrectRate = _getCorrectRate;
+exports._computeCrossEntroyLoss = _computeCrossEntroyLoss;
+exports._checkSampleCount = _checkSampleCount;
+exports.train = train;
+exports.inference = inference;
+exports.inferenceWithSampleCount = inferenceWithSampleCount;
+exports._emptyHandleInputValueToAvoidTooLargeForSigmoid = _emptyHandleInputValueToAvoidTooLargeForSigmoid;
+exports._emptyHandleInputVectorToAvoidTooLargeForSigmoid = _emptyHandleInputVectorToAvoidTooLargeForSigmoid;
+exports.checkGradient = checkGradient;
+exports.testCheckGradient = testCheckGradient;
+exports.state = state$1;
 /*  Not a pure module */
