@@ -269,12 +269,6 @@ let train = (state: state, sampleCount: int, miniBatchSize: int): state => {
     let layer2NodeCount = state.wMatrixBetweenLayer2Layer3->Matrix.getColCount - 1
     let layer3NodeCount = state.wMatrixBetweenLayer2Layer3->Matrix.getRowCount
 
-//     Js.log(
-// ( layer1NodeCount,
-// layer2NodeCount,
-// layer3NodeCount )
-//     )
-
     let (state, ((correctCount, errorCount), lossSum)) =
       miniBatchPartitionData->ArraySt.reduceOneParam(
         (. (state, ((correctCount, errorCount), lossSum)), miniBatchData) => {
