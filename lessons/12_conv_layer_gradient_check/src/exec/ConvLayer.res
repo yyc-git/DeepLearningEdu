@@ -217,43 +217,43 @@ let _paddingDeltaMap = (expandDeltaMap, {inputWidth, filterWidth}) => {
 let _compute = (padExpandDeltaMap, state, inputs) => {
   let lastLayerNets = inputs->NP.mapMatrixMap(Matrix.map(_, ReluActivator.invert))
 
-  ArraySt.range(0, state.filterNumber - 1)->ArraySt.reduceOneParam(
-    (. lastLayerDeltaMap, filterIndex) => {
-      let padExpandDelta = padExpandDeltaMap->ImmutableSparseMap.getExn(filterIndex)
-      let filterState = state.filterStates->ImmutableSparseMap.getExn(filterIndex)
+  let lastLayerDeltaMap =
+    ArraySt.range(0, state.filterNumber - 1)->ArraySt.reduceOneParam(
+      (. lastLayerDeltaMap, filterIndex) => {
+        let padExpandDelta = padExpandDeltaMap->ImmutableSparseMap.getExn(filterIndex)
+        let filterState = state.filterStates->ImmutableSparseMap.getExn(filterIndex)
 
-      let flippedWeights =
-        Filter.getWeights(filterState)->ImmutableSparseMap.map((. weight) => weight->NP.rotate180)
+        let flippedWeights =
+          Filter.getWeights(filterState)->ImmutableSparseMap.map((. weight) => weight->NP.rotate180)
 
-      // "aaa"->Log.printForDebug->ignore
-      let lastLayerDeltaMap = NP.addMatrixMap(
-        lastLayerDeltaMap,
-        LayerUtils.createLastLayerDeltaMap((
-          state.depthNumber,
-          state.inputWidth,
-          state.inputHeight,
-        ))->ImmutableSparseMap.mapi((. delta, depthIndex) => {
-          _crossCorrelation2D(
-            padExpandDelta,
-            flippedWeights->ImmutableSparseMap.getExn(depthIndex),
-            (Matrix.getColCount(delta), Matrix.getRowCount(delta)),
-            1,
-            0.,
-          )
-        }),
-      )
-
-      lastLayerDeltaMap->ImmutableSparseMap.mapi((. lastLayerDelta, depthIndex) => {
-        NP.dot(
-          lastLayerDelta,
-          lastLayerNets
-          ->NP.mapMatrixMap(Matrix.map(_, ReluActivator.backward))
-          ->ImmutableSparseMap.getExn(depthIndex),
+        NP.addMatrixMap(
+          lastLayerDeltaMap,
+          LayerUtils.createLastLayerDeltaMap((
+            state.depthNumber,
+            state.inputWidth,
+            state.inputHeight,
+          ))->ImmutableSparseMap.mapi((. delta, depthIndex) => {
+            _crossCorrelation2D(
+              padExpandDelta,
+              flippedWeights->ImmutableSparseMap.getExn(depthIndex),
+              (Matrix.getColCount(delta), Matrix.getRowCount(delta)),
+              1,
+              0.,
+            )
+          }),
         )
-      })
-    },
-    LayerUtils.createLastLayerDeltaMap((state.depthNumber, state.inputWidth, state.inputHeight)),
-  )
+      },
+      LayerUtils.createLastLayerDeltaMap((state.depthNumber, state.inputWidth, state.inputHeight)),
+    )
+
+  lastLayerDeltaMap->ImmutableSparseMap.mapi((. lastLayerDelta, depthIndex) => {
+    NP.dot(
+      lastLayerDelta,
+      lastLayerNets
+      ->NP.mapMatrixMap(Matrix.map(_, ReluActivator.backward))
+      ->ImmutableSparseMap.getExn(depthIndex),
+    )
+  })
 }
 
 // let _multiplyActivatorDeriv = (delta, input) => {
