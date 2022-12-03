@@ -6,18 +6,18 @@ open Operators
 let feature = loadFeature("./test/features/linear_hidden_layer.feature")
 
 defineFeature(feature, test => {
-  let state = ref(Obj.magic(1))
-
   test(."check layer weight gradient", ({given, \"when", \"and", then}) => {
+    let stateForLinearLayer1 = ref(Obj.magic(1))
+    let stateForLinearLayer2 = ref(Obj.magic(1))
     let result = ref(Obj.magic(1))
     let previousLayerOutputVector = [-2., -1.]->Vector.create
     let outLinearLayerNodeCount = 2
     let outputNet = ref(Obj.magic(1))
     let outputVector = ref(Obj.magic(1))
-    let activatorData = SigmoidActivatorForCheckGradientTool.buildData()->Some
-    let nextLayerActivatorData = IdentityActivator.buildData()->Some
-    let nextLayerDelta = ref(Obj.magic(1))
-    let layerDelta = ref(Obj.magic(1))
+    let linearLayer1ActivatorData = SigmoidActivatorForCheckGradientTool.buildData()->Some
+    let linearLayer2ActivatorData = IdentityActivator.buildData()->Some
+    let linearLayer2Delta = ref(Obj.magic(1))
+    let linearLayer1Delta = ref(Obj.magic(1))
     let actualGradient = ref(Obj.magic(1))
     let computeError = ref(Obj.magic(1))
 
@@ -40,7 +40,21 @@ defineFeature(feature, test => {
           // bias: [1., 1.],
         }
 
-        state := s
+        stateForLinearLayer1 := s
+
+        let s = {
+          ...s,
+          weight: Matrix.create(
+            outLinearLayerNodeCount,
+            inLinearLayerNodeCount,
+            // [-1.5, 2.5, -0.5, 1.5],
+            [1.5, 0.5, -2., 1.],
+          ),
+          // bias: [1., 1.5],
+          bias: [1., 1.],
+        }
+
+        stateForLinearLayer2 := s
       })
     }
 
@@ -48,42 +62,42 @@ defineFeature(feature, test => {
       computeError,
       (updateWMatrixByAddEpsilon, updateWMatrixBySubEpsilon),
       actualGradient,
-      state: LinearLayerStateType.state,
+      stateForLinearLayer1: LinearLayerStateType.state,
     ) => {
       open LinearLayer
 
       let epsilon = 10e-4
 
-      let newState1 = updateWMatrixByAddEpsilon(state, epsilon)
+      let stateForLinearLayer1_1 = updateWMatrixByAddEpsilon(stateForLinearLayer1, epsilon)
 
-      let (newState1, _, outputVector) = forward(
-        newState1->Obj.magic,
-        activatorData,
+      let (_, _, outputVector) = forward(
+        stateForLinearLayer1_1->Obj.magic,
+        linearLayer1ActivatorData,
         previousLayerOutputVector,
         NetworkType.Train,
       )
 
-      let (newState1, _, outputVector) = forward(
-        state->Obj.magic,
-        nextLayerActivatorData,
+      let (_, _, outputVector) = forward(
+        stateForLinearLayer2.contents->Obj.magic,
+        linearLayer2ActivatorData,
         outputVector,
         NetworkType.Train,
       )
 
       let error1 = computeError(outputVector)
 
-      let newState2 = updateWMatrixBySubEpsilon(state, epsilon)
+      let stateForLinearLayer1_2 = updateWMatrixBySubEpsilon(stateForLinearLayer1, epsilon)
 
-      let (newState2, _, outputVector) = forward(
-        newState2->Obj.magic,
-        activatorData,
+      let (_, _, outputVector) = forward(
+        stateForLinearLayer1_2->Obj.magic,
+        linearLayer1ActivatorData,
         previousLayerOutputVector,
         NetworkType.Train,
       )
 
-      let (newState2, _, outputVector) = forward(
-        state->Obj.magic,
-        nextLayerActivatorData,
+      let (_, _, outputVector) = forward(
+        stateForLinearLayer2.contents->Obj.magic,
+        linearLayer2ActivatorData,
         outputVector,
         NetworkType.Train,
       )
@@ -108,14 +122,14 @@ defineFeature(feature, test => {
           }
         )
 
-      nextLayerDelta :=
+      linearLayer2Delta :=
         ArraySt.range(0, outLinearLayerNodeCount - 1)->ArraySt.map(_ => 1.)->Vector.create
     })
 
     \"and"("forward layer", () => {
       let (_, outputNet_, outputVector_) = LinearLayer.forward(
-        state.contents->Obj.magic,
-        activatorData,
+        stateForLinearLayer1.contents->Obj.magic,
+        linearLayer1ActivatorData,
         previousLayerOutputVector,
         NetworkType.Train,
       )
@@ -125,19 +139,19 @@ defineFeature(feature, test => {
     })
 
     \"and"("compute layer delta", () => {
-      layerDelta :=
+      linearLayer1Delta :=
         LinearLayer.bpDelta(
-          activatorData,
+          linearLayer1ActivatorData,
           (outputVector.contents->Some, outputNet.contents),
-          nextLayerDelta.contents,
-          state.contents->Obj.magic,
+          linearLayer2Delta.contents,
+          stateForLinearLayer2.contents->Obj.magic,
         )
     })
 
     \"and"("compute layer weight gradient as actual weight gradient", () => {
       let (weightGradient, biasGradient) = LinearLayer.computeGradient(
         previousLayerOutputVector,
-        layerDelta.contents->OptionSt.getExn,
+        linearLayer1Delta.contents->OptionSt.getExn,
         None,
       )
 
@@ -154,7 +168,7 @@ defineFeature(feature, test => {
         weight: weight,
       }, _checkWeight(
         computeError.contents,
-      ), state.contents.weight, actualGradient.contents, state.contents)
+      ), stateForLinearLayer1.contents.weight, actualGradient.contents, stateForLinearLayer1.contents)
     })
   })
 })
