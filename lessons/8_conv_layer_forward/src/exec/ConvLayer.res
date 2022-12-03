@@ -163,7 +163,7 @@ let forward = (activate, state, inputs: ImmutableSparseMapType.t<depthIndex, Mat
       // net->Log.printForDebug->ignore
 
       let output = net->_elementWiseOp(
-        // ReluActivator.forward
+        // ReluActivator_answer.forward
         activate,
       )
 
@@ -171,173 +171,6 @@ let forward = (activate, state, inputs: ImmutableSparseMapType.t<depthIndex, Mat
     }, (ImmutableSparseMap.createEmpty(), ImmutableSparseMap.createEmpty()))
 
   (paddedInputs, (nets, outputMap))
-}
-
-let _expandDeltaMapByStride = (
-  deltaMap,
-  {inputWidth, inputHeight, filterWidth, filterHeight, stride, zeroPadding},
-) => {
-  let (_, _, deltaMapDepth) = NP.getMatrixMapSize(deltaMap)
-
-  let expandDeltaWidth = LayerUtils.computeOutputSize(inputWidth, filterWidth, zeroPadding, 1)
-  let expandDeltaHeight = LayerUtils.computeOutputSize(inputHeight, filterHeight, zeroPadding, 1)
-
-  // "ssss"->Log.printForDebug->ignore
-
-  // let expandDelta = NP.zeroMatrix(expandDeltaHeight, expandDeltaWidth)
-  let expandDeltaMap = NP.zeroMatrixMap(deltaMapDepth, expandDeltaHeight, expandDeltaWidth)
-
-  deltaMap->ImmutableSparseMap.mapi((. delta, i) => {
-    let expandDelta = expandDeltaMap->ImmutableSparseMap.getExn(i)
-
-    delta->NP.reduceMatrix((expandDelta, value, rowIndex, colIndex) => {
-      expandDelta->MatrixUtils.setValue(value, rowIndex * stride, colIndex * stride)
-    }, expandDelta)
-  })
-}
-
-let _paddingDeltaMap = (expandDeltaMap, {inputWidth, filterWidth}) => {
-  let (expandDeltaWidth, _, _) = NP.getMatrixMapSize(expandDeltaMap)
-
-  _padding(expandDeltaMap, (inputWidth + filterWidth - 1 - expandDeltaWidth) / 2)
-}
-
-// let _computeDeltaWeightConv = (expandDelta, state) => {
-//   ArraySt.range(0, state.filterNumber - 1)->ArraySt.reduceOneParami((. totalDelta, _, i) => {
-//     let filterState = ImmutableSparseMap.getExn(i)
-
-//     let invertedWeights = NP.rotate180(Filter.getWeights(filterState))
-
-//     let delta = _crossCorrelation3D(expandDelta, invertedWeights, LayerUtils. createLastLayerDeltaMap(state), 1, 0)
-
-//     Matrix.add(totalDelta, delta)
-//   }, LayerUtils. createLastLayerDeltaMap(state))
-// }
-
-let _compute = (padExpandDeltaMap, state, inputs) => {
-  let lastLayerNets = inputs->NP.mapMatrixMap(Matrix.map(_, ReluActivator.invert))
-
-  let lastLayerDeltaMap =
-    ArraySt.range(0, state.filterNumber - 1)->ArraySt.reduceOneParam(
-      (. lastLayerDeltaMap, filterIndex) => {
-        let padExpandDelta = padExpandDeltaMap->ImmutableSparseMap.getExn(filterIndex)
-        let filterState = state.filterStates->ImmutableSparseMap.getExn(filterIndex)
-
-        let flippedWeights =
-          Filter.getWeights(filterState)->ImmutableSparseMap.map((. weight) => weight->NP.rotate180)
-
-        NP.addMatrixMap(
-          lastLayerDeltaMap,
-          LayerUtils.createLastLayerDeltaMap((
-            state.depthNumber,
-            state.inputWidth,
-            state.inputHeight,
-          ))->ImmutableSparseMap.mapi((. delta, depthIndex) => {
-            _crossCorrelation2D(
-              padExpandDelta,
-              flippedWeights->ImmutableSparseMap.getExn(depthIndex),
-              (Matrix.getColCount(delta), Matrix.getRowCount(delta)),
-              1,
-              0.,
-            )
-          }),
-        )
-      },
-      LayerUtils.createLastLayerDeltaMap((state.depthNumber, state.inputWidth, state.inputHeight)),
-    )
-
-  lastLayerDeltaMap->ImmutableSparseMap.mapi((. lastLayerDelta, depthIndex) => {
-    NP.dot(
-      lastLayerDelta,
-      lastLayerNets
-      ->NP.mapMatrixMap(Matrix.map(_, ReluActivator.backward))
-      ->ImmutableSparseMap.getExn(depthIndex),
-    )
-  })
-}
-
-// let _multiplyActivatorDeriv = (delta, input) => {
-//   NP.dot(delta, input->_elementWiseOp(ReluActivator.backward))
-// }
-
-// 计算传递到上一层的delta map
-let bpDeltaMap = (
-  state,
-  inputs: ImmutableSparseMapType.t<depthIndex, Matrix.t>,
-  deltaMap: ImmutableSparseMapType.t<filterIndex, Matrix.t>,
-) => {
-  _expandDeltaMapByStride(deltaMap, state)
-  // ->Log.printForDebug
-  ->_paddingDeltaMap(state)
-  // ->Log.printForDebug
-  // ->_computeDeltaWeightConv(state)
-  // ->_multiplyActivatorDeriv(nets)
-  ->_compute(state, inputs)
-}
-
-// let bpGradient = (state, outputMap, deltaMap) => {
-let bpGradient = (state, paddedInputs, deltaMap) => {
-  // ("bbb", deltaMap)->Log.printForDebug->ignore
-  let expandDeltaMap = _expandDeltaMapByStride(deltaMap, state)
-
-  ArraySt.range(0, state.filterNumber - 1)->ArraySt.reduceOneParam((. state, filterIndex) => {
-    let filterState: Filter.state = state.filterStates->ImmutableSparseMap.getExn(filterIndex)
-
-    let expandDelta = expandDeltaMap->ImmutableSparseMap.getExn(filterIndex)
-
-    let weightGradients = filterState.weightGradients->ImmutableSparseMap.mapi((.
-      weightGradient,
-      depthIndex,
-    ) => {
-      _crossCorrelation2D(
-        paddedInputs->ImmutableSparseMap.getExn(depthIndex),
-        expandDelta,
-        (Matrix.getColCount(weightGradient), Matrix.getRowCount(weightGradient)),
-        1,
-        0.,
-      )
-    })
-
-    let biasGradient = NP.sum(expandDelta)
-
-    {
-      ...state,
-      filterStates: state.filterStates->ImmutableSparseMap.set(
-        filterIndex,
-        {
-          ...filterState,
-          weightGradients: weightGradients,
-          biasGradient: biasGradient,
-        },
-      ),
-    }
-  }, state)
-}
-
-let backward = (state, inputs, deltaMap) => {
-  // let (paddedInputs, _) = forward(state, inputs)
-  let (paddedInputs, _) = forward(ReluActivator.forward, state, inputs)
-
-  // let updatedDelta = bpDeltaMap(state, nets, deltaMap)
-  let lastLayerDeltaMap = bpDeltaMap(state, inputs, deltaMap)
-
-  let state = bpGradient(state, paddedInputs, deltaMap)
-
-  state
-}
-
-let update = state => {
-  ArraySt.range(0, state.filterNumber - 1)->ArraySt.reduceOneParam((. state, i) => {
-    let filterState = state.filterStates->ImmutableSparseMap.getExn(i)
-
-    {
-      ...state,
-      filterStates: state.filterStates->ImmutableSparseMap.set(
-        i,
-        Filter.update(filterState, state.leraningRate),
-      ),
-    }
-  }, state)
 }
 
 module Test = {
@@ -365,12 +198,6 @@ module Test = {
           [0., 1., 2., 2., 2.],
           [2., 1., 0., 0., 1.],
         ],
-      ]->NP.createMatrixMapByDataArr
-
-    let deltaMap =
-      [
-        [[0., 1., 1.], [2., 2., 2.], [1., 0., 0.]],
-        [[1., 0., 2.], [0., 0., 0.], [1., 2., 1.]],
       ]->NP.createMatrixMapByDataArr
 
     // inputWidth,
@@ -415,23 +242,13 @@ module Test = {
       ),
     }
 
-    (inputs, deltaMap, state)
+    (inputs, state)
   }
 
-  let test = ((inputs, deltaMap, state)) => {
-    // let (paddedInputs, (nets, outputMap)) = forward(state, inputs)
-    let (paddedInputs, (nets, outputMap)) = forward(ReluActivator.forward, state, inputs)
+  let test = ((inputs, state)) => {
+    let (paddedInputs, (nets, outputMap)) = forward(ReluActivator_answer.forward, state, inputs)
 
-    // inputs->Log.printForDebug-> ignore
-    // ("f:", paddedInputs)->Log.printForDebug->ignore
     ("f:", nets)->Log.printForDebug->ignore
-    // ("f:", outputMap)->Log.printForDebug->ignore
-
-    let state = backward(state, inputs, deltaMap)
-
-    let state = update(state)
-
-    state.filterStates->Log.printForDebug->ignore
   }
 }
 
