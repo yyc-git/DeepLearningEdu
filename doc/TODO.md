@@ -61,8 +61,6 @@ Dropout层的前向和后向传播
 
 L2范式
 
-BN层的前向和后向传播
-
 实现AlexNet
 
 
@@ -70,12 +68,37 @@ BN层的前向和后向传播
 
 
 
+实现VGG
+
+
+实现NiN
+
+
+
+实现GoogleLeNet
+
+
+
+
+BN层的前向和后向传播
+
 实现残差网络ResNet
 
 
 
 
+
+
+实现DenseNet
+
+
+
+
+
 使用ResNet识别图片类别
+
+
+
 
 
 
@@ -91,8 +114,45 @@ DnCNN
 
 
 
-继续降噪
-改进DnCNN
+<!-- 继续降噪 -->
+<!-- 改进DnCNN -->
+
+
+
+refer to: 
+https://zhuanlan.zhihu.com/p/410980303
+https://zhuanlan.zhihu.com/p/421052050
+
+
+
+LBF
+A machine learning approach for filtering Monte Carlo noise
+
+
+
+
+KPCN
+Kernel-predicting convolutional networks for denoising Monte Carlo renderings
+
+
+
+
+KPAL???
+
+
+
+
+
+Monte Carlo Denoising via Auxiliary Feature Guided Self-Attention
+
+
+
+
+
+Self-Supervised Post-Correction for Monte Carlo Denoising
+https://github.com/CGLab-GIST/self-supervised-post-corr
+
+
 
 
 
