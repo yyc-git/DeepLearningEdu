@@ -109,7 +109,7 @@ add graph check debug
 加入更多后端:
 train:
 CPU(implement by own)
-WebGL/WebGPU(encapulate Tensorflow.js)
+WebGPU(encapulate Tensorflow.js? or implement by own?)
 
 inference:
 CPU(implement by own)
