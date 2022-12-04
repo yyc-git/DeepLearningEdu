@@ -12,47 +12,7 @@ let update = (data, (learnRate, t: int, (beta1, beta2, epsion)), vt_1, st_1, gra
 //   newWeightValue -. oldWeightValue *. learnRate *. weightDecay
 // }
 
-let updateWeight = (
-  weight,
-  // (learnRate, t, (beta1, beta2, epsion), weightDecay),
-  (learnRate, t, (beta1, beta2, epsion)),
-  gradientDataSum,
-  miniBatchSize,
-  (vWeight, sWeight),
-) => {
-  let (newWeightValueArr, vtForWeightArr, stForWeightArr) =
-    weight->NP.reduceMatrix(
-      ((newWeightValueArr, vtArr, stArr), weightValue, rowIndex, colIndex) => {
-        let (newWeightValue, (vt, st)) = update(
-          weightValue,
-          (learnRate, t, (beta1, beta2, epsion)),
-          vWeight->Obj.magic->MatrixUtils.getValue(rowIndex, colIndex),
-          sWeight->Obj.magic->MatrixUtils.getValue(rowIndex, colIndex),
-          gradientDataSum->MatrixUtils.getValue(rowIndex, colIndex) /. miniBatchSize->Obj.magic,
-        )
-
-        // let newWeightValue =
-        //   newWeightValue->weightDecayForAdamW(weightValue, weightDecay, learnRate)
-
-        (
-          newWeightValueArr->ArraySt.push(newWeightValue),
-          vtArr->ArraySt.push(vt),
-          stArr->ArraySt.push(st),
-        )
-      },
-      ([], [], []),
-    )
-
-  let (rowCount, colCount) = (Matrix.getRowCount(weight), Matrix.getColCount(weight))
-
-  (
-    Matrix.create(rowCount, colCount, newWeightValueArr),
-    (
-      Matrix.create(rowCount, colCount, vtForWeightArr),
-      Matrix.create(rowCount, colCount, stForWeightArr),
-    ),
-  )
-}
+let updateWeight = OptimizerUtils.updateWeight(update)
 
 let increaseT = t => {
   t->succ

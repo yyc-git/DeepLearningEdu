@@ -1,14 +1,10 @@
 let _createNetwork1 = () => {
-  let linearLayerLearnRate = 0.01
+  // let linearLayerLearnRate = 0.01
   // let linearLayerLearnRate = 10.
   // let weightDecay = 0.0
 
   Network.create(
-    AdamWOptimizerUtils.buildNetworkAdamWOptimizerData(
-      ~learnRate=linearLayerLearnRate,
-      // ~weightDecay,
-      (),
-    ),
+    NoOptimizerUtils.buildNetworkNoOptimizerData(~allLearnRates=[10., 0.1], ()),
     true,
     [
       LinearLayer.createLayerData(
