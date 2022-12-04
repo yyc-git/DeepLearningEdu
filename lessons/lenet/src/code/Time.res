@@ -1,0 +1,1 @@
+let getNow = %raw(` () => { return new Date().getTime()} `)

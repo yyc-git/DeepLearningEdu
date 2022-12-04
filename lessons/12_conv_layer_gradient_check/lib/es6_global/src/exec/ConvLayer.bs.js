@@ -116,11 +116,11 @@ function _compute(padExpandDeltaMap, state, inputs) {
   var lastLayerNets = NP$8_cnn.mapMatrixMap(inputs, (function (__x) {
           return Matrix$8_cnn.map(__x, ReluActivator$8_cnn.invert);
         }));
-  return ArraySt$8_cnn.reduceOneParam(ArraySt$8_cnn.range(0, state.filterNumber - 1 | 0), (function (lastLayerDeltaMap, filterIndex) {
-                var padExpandDelta = ImmutableSparseMap$8_cnn.getExn(padExpandDeltaMap, filterIndex);
-                var filterState = ImmutableSparseMap$8_cnn.getExn(state.filterStates, filterIndex);
-                var flippedWeights = ImmutableSparseMap$8_cnn.map(Filter$8_cnn.getWeights(filterState), NP$8_cnn.rotate180);
-                var lastLayerDeltaMap$1 = NP$8_cnn.addMatrixMap(lastLayerDeltaMap, ImmutableSparseMap$8_cnn.mapi(LayerUtils$8_cnn.createLastLayerDeltaMap([
+  var lastLayerDeltaMap = ArraySt$8_cnn.reduceOneParam(ArraySt$8_cnn.range(0, state.filterNumber - 1 | 0), (function (lastLayerDeltaMap, filterIndex) {
+          var padExpandDelta = ImmutableSparseMap$8_cnn.getExn(padExpandDeltaMap, filterIndex);
+          var filterState = ImmutableSparseMap$8_cnn.getExn(state.filterStates, filterIndex);
+          var flippedWeights = ImmutableSparseMap$8_cnn.map(Filter$8_cnn.getWeights(filterState), NP$8_cnn.rotate180);
+          return NP$8_cnn.addMatrixMap(lastLayerDeltaMap, ImmutableSparseMap$8_cnn.mapi(LayerUtils$8_cnn.createLastLayerDeltaMap([
                               state.depthNumber,
                               state.inputWidth,
                               state.inputHeight
@@ -130,16 +130,16 @@ function _compute(padExpandDeltaMap, state, inputs) {
                                         Matrix$8_cnn.getRowCount(delta)
                                       ], 1, 0);
                           })));
-                return ImmutableSparseMap$8_cnn.mapi(lastLayerDeltaMap$1, (function (lastLayerDelta, depthIndex) {
-                              return NP$8_cnn.dot(lastLayerDelta, ImmutableSparseMap$8_cnn.getExn(NP$8_cnn.mapMatrixMap(lastLayerNets, (function (__x) {
-                                                    return Matrix$8_cnn.map(__x, ReluActivator$8_cnn.backward);
-                                                  })), depthIndex));
-                            }));
-              }), LayerUtils$8_cnn.createLastLayerDeltaMap([
-                  state.depthNumber,
-                  state.inputWidth,
-                  state.inputHeight
-                ]));
+        }), LayerUtils$8_cnn.createLastLayerDeltaMap([
+            state.depthNumber,
+            state.inputWidth,
+            state.inputHeight
+          ]));
+  return ImmutableSparseMap$8_cnn.mapi(lastLayerDeltaMap, (function (lastLayerDelta, depthIndex) {
+                return NP$8_cnn.dot(lastLayerDelta, ImmutableSparseMap$8_cnn.getExn(NP$8_cnn.mapMatrixMap(lastLayerNets, (function (__x) {
+                                      return Matrix$8_cnn.map(__x, ReluActivator$8_cnn.backward);
+                                    })), depthIndex));
+              }));
 }
 
 function bpDeltaMap(state, inputs, deltaMap) {

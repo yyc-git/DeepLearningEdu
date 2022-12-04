@@ -89,13 +89,36 @@ BN层的前向和后向传播
 
 
 
-实现DenseNet
+<!-- 实现DenseNet -->
 
 
 
 
 
 使用ResNet识别图片类别
+
+
+
+
+
+
+add graph check debug
+    e.g. check whether layer's input and output count are equal or not
+
+
+加入更多后端:
+train:
+CPU(implement by own)
+WebGL/WebGPU(encapulate Tensorflow.js)
+
+inference:
+CPU(implement by own)
+WebNN
+
+
+
+
+
 
 
 
@@ -156,4 +179,3 @@ https://github.com/CGLab-GIST/self-supervised-post-corr
 
 
 
-<!-- 加入更多后端 -->
