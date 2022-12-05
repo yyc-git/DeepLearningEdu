@@ -38,6 +38,7 @@
 
 
 
+# finish 基础课
 
 
 
@@ -47,12 +48,62 @@
 
 
 
+# publish AI3D
+
+
+
+AI3D:
+
+extract graph mr
+    add graph check debug
+        e.g. check whether layer's input and output count are equal or not
+
+
+加入更多后端:
+train:
+CPU(implement by own)
+WebGPU(
+    ////encapulate Tensorflow.js? 
+or implement by own?
+)
+
+inference:
+CPU(implement by own)
+WebNN
+
+
+
+
+Extend:
+extend by add layer(backend: CPU, WebGPU, WebNN)
+extend by add activate
+
+
+
+
+Meta3D:
+use Meta3D
+    Meta3d should finish 0.9.0 first!!!
 
 
 
 
 
 
+LeNet: train by WebGPU, inference by WebNN
+
+
+
+
+
+Publish AI3D
+
+
+
+
+
+
+# begin 提高课
 
 
 
@@ -100,20 +151,6 @@ BN层的前向和后向传播
 
 
 
-
-
-add graph check debug
-    e.g. check whether layer's input and output count are equal or not
-
-
-加入更多后端:
-train:
-CPU(implement by own)
-WebGPU(encapulate Tensorflow.js? or implement by own?)
-
-inference:
-CPU(implement by own)
-WebNN
 
 
 
