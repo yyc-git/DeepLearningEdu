@@ -27,7 +27,10 @@ let create = (inputWidth, inputHeight, depthNumber, filterWidth, filterHeight, s
   }
 }
 
-let forward = (state, inputs: ImmutableSparseMapType.t<depthIndex, Matrix.t>) => {
+let forward = (
+  state,
+  inputs: ImmutableSparseMapType.t<depthIndex, Matrix.t>,
+): ImmutableSparseMapType.t<depthIndex, Matrix.t> => {
   //TODO implement
   Obj.magic(1)
 }
