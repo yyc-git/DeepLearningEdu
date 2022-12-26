@@ -83,7 +83,7 @@ function forward(activate, state, inputs) {
         ];
 }
 
-function bpDeltaMap(state, inputs, nextLayerDeltaMap) {
+function bpDeltaMap(state, inputNets, nextLayerDeltaMap) {
   return 1;
 }
 

@@ -12,6 +12,7 @@ let getConvolutionRegion3D = (inputs, rowIndex, colIndex, filterWidth, filterHei
   })
 }
 
-let createLastLayerDeltaMap = ((depthNumber, inputWidth, inputHeight)) => {
+// let createLastLayerDeltaMap = ((depthNumber, inputWidth, inputHeight)) => {
+let createCurrentLayerDeltaMap = ((depthNumber, inputWidth, inputHeight)) => {
   NP.zeroMatrixMap(depthNumber, inputHeight, inputWidth)
 }

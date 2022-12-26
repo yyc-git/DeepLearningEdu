@@ -78,6 +78,31 @@ let _padding = (matrixMap, zeroPadding) => {
   }
 }
 
+let _crossCorrelation2D = (input, weight, (outputWidth, outputHeight), stride, bias) => {
+  let (filterWidth, filterHeight) = (Matrix.getColCount(weight), Matrix.getRowCount(weight))
+
+  let outputRow = outputHeight
+  let outputCol = outputWidth
+
+  NP.zeroMatrix(outputRow, outputCol)->NP.reduceMatrix((output, _, rowIndex, colIndex) => {
+    output->MatrixUtils.setValue(
+      NP.dot(
+        weight,
+        LayerUtils.getConvolutionRegion2D(
+          input,
+          rowIndex,
+          colIndex,
+          filterWidth,
+          filterHeight,
+          stride,
+        ),
+      )->NP.sum +. bias,
+      rowIndex,
+      colIndex,
+    )
+  }, Matrix.create(outputRow, outputCol, []))
+}
+
 let _crossCorrelation3D = (inputs, weights, (outputWidth, outputHeight), stride, bias) => {
   let (filterWidth, filterHeight, _) = NP.getMatrixMapSize(weights)
 
@@ -131,13 +156,84 @@ let forward = (activate, state, inputs: ImmutableSparseMapType.t<depthIndex, Mat
   (paddedInputs, (nets, outputMap))
 }
 
+let _expandDeltaMapByStride = (
+  nextLayerDeltaMap,
+  {inputWidth, inputHeight, filterWidth, filterHeight, stride, zeroPadding},
+) => {
+  let (_, _, deltaMapDepth) = NP.getMatrixMapSize(nextLayerDeltaMap)
+
+  let expandDeltaWidth = LayerUtils.computeOutputSize(inputWidth, filterWidth, zeroPadding, 1)
+  let expandDeltaHeight = LayerUtils.computeOutputSize(inputHeight, filterHeight, zeroPadding, 1)
+
+  let expandDeltaMap = NP.zeroMatrixMap(deltaMapDepth, expandDeltaHeight, expandDeltaWidth)
+
+  nextLayerDeltaMap->ImmutableSparseMap.mapi((. delta, i) => {
+    let expandDelta = expandDeltaMap->ImmutableSparseMap.getExn(i)
+
+    delta->NP.reduceMatrix((expandDelta, value, rowIndex, colIndex) => {
+      expandDelta->MatrixUtils.setValue(value, rowIndex * stride, colIndex * stride)
+    }, expandDelta)
+  })
+}
+
+let _paddingDeltaMap = (expandDeltaMap, {inputWidth, filterWidth}) => {
+  let (expandDeltaWidth, _, _) = NP.getMatrixMapSize(expandDeltaMap)
+
+  _padding(expandDeltaMap, (inputWidth + filterWidth - 1 - expandDeltaWidth) / 2)
+}
+
+let _compute = (padExpandDeltaMap, state, inputNets) => {
+  let currentLayerDeltaMap =
+    ArraySt.range(0, state.filterNumber - 1)->ArraySt.reduceOneParam(
+      (. currentLayerDeltaMap, filterIndex) => {
+        let padExpandDelta = padExpandDeltaMap->ImmutableSparseMap.getExn(filterIndex)
+        let filterState = state.filterStates->ImmutableSparseMap.getExn(filterIndex)
+
+        let flippedWeights =
+          Filter.getWeights(filterState)->ImmutableSparseMap.map((. weight) => weight->NP.rotate180)
+
+        NP.addMatrixMap(
+          currentLayerDeltaMap,
+          LayerUtils.createCurrentLayerDeltaMap((
+            state.depthNumber,
+            state.inputWidth,
+            state.inputHeight,
+          ))->ImmutableSparseMap.mapi((. delta, depthIndex) => {
+            _crossCorrelation2D(
+              padExpandDelta,
+              flippedWeights->ImmutableSparseMap.getExn(depthIndex),
+              (Matrix.getColCount(delta), Matrix.getRowCount(delta)),
+              1,
+              0.,
+            )
+          }),
+        )
+      },
+      LayerUtils.createCurrentLayerDeltaMap((
+        state.depthNumber,
+        state.inputWidth,
+        state.inputHeight,
+      )),
+    )
+
+  currentLayerDeltaMap->ImmutableSparseMap.mapi((. currentLayerDelta, depthIndex) => {
+    NP.dot(
+      currentLayerDelta,
+      inputNets
+      ->NP.mapMatrixMap(Matrix.map(_, ReluActivator.backward))
+      ->ImmutableSparseMap.getExn(depthIndex),
+    )
+  })
+}
+
 let bpDeltaMap = (
   state,
   inputNets: ImmutableSparseMapType.t<depthIndex, Matrix.t>,
   nextLayerDeltaMap: ImmutableSparseMapType.t<filterIndex, Matrix.t>,
-):ImmutableSparseMapType.t<depthIndex, Matrix.t> => {
-  //TODO implement
-  Obj.magic(1)
+): ImmutableSparseMapType.t<depthIndex, Matrix.t> => {
+  _expandDeltaMapByStride(nextLayerDeltaMap, state)
+  ->_paddingDeltaMap(state)
+  ->_compute(state, inputNets)
 }
 
 module Test = {
