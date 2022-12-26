@@ -315,7 +315,7 @@ let bpGradient = (state, paddedInputs, deltaMap) => {
 }
 
 let backward = (state, inputs, deltaMap) => {
-  // let (paddedInputs, _) = forward(state, inputs)
+  // TODO remove forward
   let (paddedInputs, _) = forward(ReluActivator.forward, state, inputs)
 
   // let updatedDelta = bpDeltaMap(state, nets, deltaMap)

@@ -1,0 +1,3 @@
+- TODO rename lastLayerDeltaMap to currentLayerDeltaMap
+- TODO rename backward, bpDeltaMap->deltaMap to nextLayerDeltaMap
+- TODO rename LayerUtils.createLastLayerDeltaMap to createCurrentLayerDeltaMap
