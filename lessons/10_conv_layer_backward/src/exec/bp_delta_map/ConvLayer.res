@@ -133,7 +133,7 @@ let forward = (activate, state, inputs: ImmutableSparseMapType.t<depthIndex, Mat
 
 let bpDeltaMap = (
   state,
-  inputs: ImmutableSparseMapType.t<depthIndex, Matrix.t>,
+  inputNets: ImmutableSparseMapType.t<depthIndex, Matrix.t>,
   nextLayerDeltaMap: ImmutableSparseMapType.t<filterIndex, Matrix.t>,
 ) => {
   //TODO implement
