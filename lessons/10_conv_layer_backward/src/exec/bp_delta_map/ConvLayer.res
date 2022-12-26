@@ -131,6 +131,15 @@ let forward = (activate, state, inputs: ImmutableSparseMapType.t<depthIndex, Mat
   (paddedInputs, (nets, outputMap))
 }
 
+let bpDeltaMap = (
+  state,
+  inputs: ImmutableSparseMapType.t<depthIndex, Matrix.t>,
+  nextLayerDeltaMap: ImmutableSparseMapType.t<filterIndex, Matrix.t>,
+) => {
+  //TODO implement
+  Obj.magic(1)
+}
+
 module Test = {
   let init = () => {
     let inputs =
