@@ -9,3 +9,9 @@ add conv gradient check test
     -  returned "previousLayerDelta" to currentLayerDelta
   
     -  TODO also rename related implement code
+
+
+
+
+<!-- - TODO change computeGradient->receive expandDeltaMap to currentLayerDeltaMap -->
+- TODO change computeGradient->receive expandDeltaMap to currentLayerExpandDeltaMap
