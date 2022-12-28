@@ -1,0 +1,81 @@
+rescript = 1
+cleaner = /Users/yang/Github/DeepLearningEdu/node_modules/gentype/gentype.exe
+rule astj
+  command = /Users/yang/Github/DeepLearningEdu/node_modules/rescript/darwin/bsc.exe -w -0-1-2-3-4-7-8-9-10-11-12-13-14-15-16-17-18-19-20-21-22-23-24-25-26-27-28-29-30-31-32-33-34-35-36-37-38-39-40-41-42-43-44-45-46-47-48-49-50-51-52-53-54-55-56-57-58-59-60-61-62-K -warn-error +5+6 -bs-v 9.1.4 -bs-no-version-header -bs-super-errors -absname -bs-ast -o $out $i
+o src/exec/NP.ast : astj ../../src/exec/NP.res
+rule deps
+  command = /Users/yang/Github/DeepLearningEdu/node_modules/rescript/darwin/bsb_helper.exe -hash 9362c8770753d68b72d52c4a97401fa6 -bs-ns 8_cnn $in
+  restat = 1
+o src/exec/NP.d : deps src/exec/NP.ast
+rule mij
+  command = /Users/yang/Github/DeepLearningEdu/node_modules/rescript/darwin/bsc.exe -bs-ns 8_cnn -I . -I src/exec/sparse_map_type -I src/exec/sparse_map -I src/exec/bp_delta_map -I src/exec -I src -bs-no-version-header -bs-super-errors -w -0-1-2-3-4-7-8-9-10-11-12-13-14-15-16-17-18-19-20-21-22-23-24-25-26-27-28-29-30-31-32-33-34-35-36-37-38-39-40-41-42-43-44-45-46-47-48-49-50-51-52-53-54-55-56-57-58-59-60-61-62-K -warn-error +5+6 -bs-gentype /Users/yang/Github/DeepLearningEdu/node_modules/gentype/gentype.exe -bs-package-name 8_cnn -bs-package-output commonjs:lib/js/$in_d:.bs.js -bs-package-output es6-global:lib/es6_global/$in_d:.bs.js $i
+  dyndep = 1
+  restat = 1
+o src/exec/NP-8_cnn.cmj src/exec/NP-8_cnn.cmi ../es6_global/src/exec/NP.bs.js ../js/src/exec/NP.bs.js : mij src/exec/NP.ast
+o src/exec/Log.ast : astj ../../src/exec/Log.res
+o src/exec/Log.d : deps src/exec/Log.ast
+o src/exec/Log-8_cnn.cmj src/exec/Log-8_cnn.cmi ../es6_global/src/exec/Log.bs.js ../js/src/exec/Log.bs.js : mij src/exec/Log.ast
+o src/exec/mnist.ast : astj ../../src/exec/mnist.res
+o src/exec/mnist.d : deps src/exec/mnist.ast
+o src/exec/mnist-8_cnn.cmj src/exec/mnist-8_cnn.cmi ../es6_global/src/exec/mnist.bs.js ../js/src/exec/mnist.bs.js : mij src/exec/mnist.ast
+o src/exec/Matrix.ast : astj ../../src/exec/Matrix.res
+o src/exec/Matrix.d : deps src/exec/Matrix.ast
+o src/exec/Matrix-8_cnn.cmj src/exec/Matrix-8_cnn.cmi ../es6_global/src/exec/Matrix.bs.js ../js/src/exec/Matrix.bs.js : mij src/exec/Matrix.ast
+o src/exec/Vector.ast : astj ../../src/exec/Vector.res
+o src/exec/Vector.d : deps src/exec/Vector.ast
+o src/exec/Vector-8_cnn.cmj src/exec/Vector-8_cnn.cmi ../es6_global/src/exec/Vector.bs.js ../js/src/exec/Vector.bs.js : mij src/exec/Vector.ast
+o src/exec/ArraySt.ast : astj ../../src/exec/ArraySt.res
+o src/exec/ArraySt.d : deps src/exec/ArraySt.ast
+o src/exec/ArraySt-8_cnn.cmj src/exec/ArraySt-8_cnn.cmi ../es6_global/src/exec/ArraySt.bs.js ../js/src/exec/ArraySt.bs.js : mij src/exec/ArraySt.ast
+o src/exec/OptionSt.ast : astj ../../src/exec/OptionSt.res
+o src/exec/OptionSt.d : deps src/exec/OptionSt.ast
+o src/exec/OptionSt-8_cnn.cmj src/exec/OptionSt-8_cnn.cmi ../es6_global/src/exec/OptionSt.bs.js ../js/src/exec/OptionSt.bs.js : mij src/exec/OptionSt.ast
+o src/exec/Exception.ast : astj ../../src/exec/Exception.res
+o src/exec/Exception.d : deps src/exec/Exception.ast
+o src/exec/Exception-8_cnn.cmj src/exec/Exception-8_cnn.cmi ../es6_global/src/exec/Exception.bs.js ../js/src/exec/Exception.bs.js : mij src/exec/Exception.ast
+o src/exec/NullUtils.ast : astj ../../src/exec/NullUtils.res
+o src/exec/NullUtils.d : deps src/exec/NullUtils.ast
+o src/exec/NullUtils-8_cnn.cmj src/exec/NullUtils-8_cnn.cmi ../es6_global/src/exec/NullUtils.bs.js ../js/src/exec/NullUtils.bs.js : mij src/exec/NullUtils.ast
+o src/exec/DebugUtils.ast : astj ../../src/exec/DebugUtils.res
+o src/exec/DebugUtils.d : deps src/exec/DebugUtils.ast
+o src/exec/DebugUtils-8_cnn.cmj src/exec/DebugUtils-8_cnn.cmi ../es6_global/src/exec/DebugUtils.bs.js ../js/src/exec/DebugUtils.bs.js : mij src/exec/DebugUtils.ast
+o src/exec/FloatUtils.ast : astj ../../src/exec/FloatUtils.res
+o src/exec/FloatUtils.d : deps src/exec/FloatUtils.ast
+o src/exec/FloatUtils-8_cnn.cmj src/exec/FloatUtils-8_cnn.cmi ../es6_global/src/exec/FloatUtils.bs.js ../js/src/exec/FloatUtils.bs.js : mij src/exec/FloatUtils.ast
+o src/exec/LayerUtils.ast : astj ../../src/exec/LayerUtils.res
+o src/exec/LayerUtils.d : deps src/exec/LayerUtils.ast
+o src/exec/LayerUtils-8_cnn.cmj src/exec/LayerUtils-8_cnn.cmi ../es6_global/src/exec/LayerUtils.bs.js ../js/src/exec/LayerUtils.bs.js : mij src/exec/LayerUtils.ast
+o src/exec/MatrixUtils.ast : astj ../../src/exec/MatrixUtils.res
+o src/exec/MatrixUtils.d : deps src/exec/MatrixUtils.ast
+o src/exec/MatrixUtils-8_cnn.cmj src/exec/MatrixUtils-8_cnn.cmi ../es6_global/src/exec/MatrixUtils.bs.js ../js/src/exec/MatrixUtils.bs.js : mij src/exec/MatrixUtils.ast
+o src/exec/ReluActivator.ast : astj ../../src/exec/ReluActivator.res
+o src/exec/ReluActivator.d : deps src/exec/ReluActivator.ast
+o src/exec/ReluActivator-8_cnn.cmj src/exec/ReluActivator-8_cnn.cmi ../es6_global/src/exec/ReluActivator.bs.js ../js/src/exec/ReluActivator.bs.js : mij src/exec/ReluActivator.ast
+o src/exec/bp_delta_map/MaxPoolingLayer.ast : astj ../../src/exec/bp_delta_map/MaxPoolingLayer.res
+o src/exec/bp_delta_map/MaxPoolingLayer.d : deps src/exec/bp_delta_map/MaxPoolingLayer.ast
+o src/exec/bp_delta_map/MaxPoolingLayer-8_cnn.cmj src/exec/bp_delta_map/MaxPoolingLayer-8_cnn.cmi ../es6_global/src/exec/bp_delta_map/MaxPoolingLayer.bs.js ../js/src/exec/bp_delta_map/MaxPoolingLayer.bs.js : mij src/exec/bp_delta_map/MaxPoolingLayer.ast
+o src/exec/bp_delta_map/MaxPoolingLayer.res_answer.ast : astj ../../src/exec/bp_delta_map/MaxPoolingLayer.res_answer.res
+o src/exec/bp_delta_map/MaxPoolingLayer.res_answer.d : deps src/exec/bp_delta_map/MaxPoolingLayer.res_answer.ast
+o src/exec/bp_delta_map/MaxPoolingLayer.res_answer-8_cnn.cmj src/exec/bp_delta_map/MaxPoolingLayer.res_answer-8_cnn.cmi ../es6_global/src/exec/bp_delta_map/MaxPoolingLayer.res_answer.bs.js ../js/src/exec/bp_delta_map/MaxPoolingLayer.res_answer.bs.js : mij src/exec/bp_delta_map/MaxPoolingLayer.res_answer.ast
+o src/exec/sparse_map/SparseMap.ast : astj ../../src/exec/sparse_map/SparseMap.res
+o src/exec/sparse_map/SparseMap.d : deps src/exec/sparse_map/SparseMap.ast
+o src/exec/sparse_map/SparseMap-8_cnn.cmj src/exec/sparse_map/SparseMap-8_cnn.cmi ../es6_global/src/exec/sparse_map/SparseMap.bs.js ../js/src/exec/sparse_map/SparseMap.bs.js : mij src/exec/sparse_map/SparseMap.ast
+o src/exec/sparse_map/MutableSparseMap.ast : astj ../../src/exec/sparse_map/MutableSparseMap.res
+o src/exec/sparse_map/MutableSparseMap.d : deps src/exec/sparse_map/MutableSparseMap.ast
+o src/exec/sparse_map/MutableSparseMap-8_cnn.cmj src/exec/sparse_map/MutableSparseMap-8_cnn.cmi ../es6_global/src/exec/sparse_map/MutableSparseMap.bs.js ../js/src/exec/sparse_map/MutableSparseMap.bs.js : mij src/exec/sparse_map/MutableSparseMap.ast
+o src/exec/sparse_map/ImmutableSparseMap.ast : astj ../../src/exec/sparse_map/ImmutableSparseMap.res
+o src/exec/sparse_map/ImmutableSparseMap.d : deps src/exec/sparse_map/ImmutableSparseMap.ast
+o src/exec/sparse_map/ImmutableSparseMap-8_cnn.cmj src/exec/sparse_map/ImmutableSparseMap-8_cnn.cmi ../es6_global/src/exec/sparse_map/ImmutableSparseMap.bs.js ../js/src/exec/sparse_map/ImmutableSparseMap.bs.js : mij src/exec/sparse_map/ImmutableSparseMap.ast
+o src/exec/sparse_map_type/SparseMapType.ast : astj ../../src/exec/sparse_map_type/SparseMapType.res
+o src/exec/sparse_map_type/SparseMapType.d : deps src/exec/sparse_map_type/SparseMapType.ast
+o src/exec/sparse_map_type/SparseMapType-8_cnn.cmj src/exec/sparse_map_type/SparseMapType-8_cnn.cmi ../es6_global/src/exec/sparse_map_type/SparseMapType.bs.js ../js/src/exec/sparse_map_type/SparseMapType.bs.js : mij src/exec/sparse_map_type/SparseMapType.ast
+o src/exec/sparse_map_type/MutableSparseMapType.ast : astj ../../src/exec/sparse_map_type/MutableSparseMapType.res
+o src/exec/sparse_map_type/MutableSparseMapType.d : deps src/exec/sparse_map_type/MutableSparseMapType.ast
+o src/exec/sparse_map_type/MutableSparseMapType-8_cnn.cmj src/exec/sparse_map_type/MutableSparseMapType-8_cnn.cmi ../es6_global/src/exec/sparse_map_type/MutableSparseMapType.bs.js ../js/src/exec/sparse_map_type/MutableSparseMapType.bs.js : mij src/exec/sparse_map_type/MutableSparseMapType.ast
+o src/exec/sparse_map_type/ImmutableSparseMapType.ast : astj ../../src/exec/sparse_map_type/ImmutableSparseMapType.res
+o src/exec/sparse_map_type/ImmutableSparseMapType.d : deps src/exec/sparse_map_type/ImmutableSparseMapType.ast
+o src/exec/sparse_map_type/ImmutableSparseMapType-8_cnn.cmj src/exec/sparse_map_type/ImmutableSparseMapType-8_cnn.cmi ../es6_global/src/exec/sparse_map_type/ImmutableSparseMapType.bs.js ../js/src/exec/sparse_map_type/ImmutableSparseMapType.bs.js : mij src/exec/sparse_map_type/ImmutableSparseMapType.ast
+rule build_package
+  command = /Users/yang/Github/DeepLearningEdu/node_modules/rescript/darwin/bsc.exe -w -49 -color always -no-alias-deps  $i
+  restat = 1
+o 8_cnn.cmi : build_package 8_cnn.mlmap

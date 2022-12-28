@@ -1,0 +1,11 @@
+9.1.4
+/Users/yang/Github/DeepLearningEdu/lessons/11_max_pooling_layer_backward
+0
+bsconfig.json	0x1.8e59aa602004ep+30
+src	0x1.8e59aa5f4112p+30
+src/exec	0x1.8eb33f80216e3p+30
+src/exec/bp_delta_map	0x1.8eb33b1d75a1ep+30
+src/exec/sparse_map	0x1.8e59aa5f515ffp+30
+src/exec/sparse_map_type	0x1.8e59aa5f5406ep+30
+===
+/Users/yang/Github/DeepLearningEdu/node_modules/rescript/darwin/rescript.exe	0x1.8d93e27b4ed8dp+30
