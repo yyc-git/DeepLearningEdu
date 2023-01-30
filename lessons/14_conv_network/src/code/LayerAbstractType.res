@@ -25,23 +25,23 @@ type previousLayerNet<'data> = 'data
 
 type previousLayerOutput<'data> = 'data
 
-type currentLayerDelta<'data> = 'data
+type nextLayerDelta<'data> = 'data
 
-type previousLayerDelta<'data> = 'data
+type currentLayerDelta<'data> = 'data
 
 type bpDelta<'inputData, 'outputData> = (
   option<previousLayerActivatorData>,
   // option<layerActivatorData>,
   (option<previousLayerOutput<'inputData>>, option<previousLayerNet<'inputData>>),
-  currentLayerDelta<'outputData>,
+  nextLayerDelta<'outputData>,
   state,
-) => option<previousLayerDelta<'inputData>>
+) => option<currentLayerDelta<'inputData>>
 
 type gradientData<'weightGradient, 'biasGradient> = ('weightGradient, 'biasGradient)
 
 type computeGradient<'inputData, 'outputData, 'weightGradient, 'biasGradient> = (
   input<'inputData>,
-  currentLayerDelta<'outputData>,
+  nextLayerDelta<'outputData>,
   option<state>,
 ) => gradientData<'weightGradient, 'biasGradient>
 
@@ -49,9 +49,9 @@ type backward<'inputData, 'outputData, 'weightGradient, 'biasGradient> = (
   option<previousLayerActivatorData>,
   // option<layerActivatorData>,
   (option<previousLayerOutput<'inputData>>, option<previousLayerNet<'inputData>>),
-  currentLayerDelta<'outputData>,
+  nextLayerDelta<'outputData>,
   state,
-) => (option<previousLayerDelta<'inputData>>, option<gradientData<'weightGradient, 'biasGradient>>)
+) => (option<currentLayerDelta<'inputData>>, option<gradientData<'weightGradient, 'biasGradient>>)
 
 type learnRate = float
 

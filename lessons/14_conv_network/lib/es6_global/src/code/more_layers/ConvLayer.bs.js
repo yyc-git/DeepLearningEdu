@@ -131,11 +131,11 @@ function _paddingDeltaMap(expandDeltaMap, param) {
 
 function _compute(param, padExpandDeltaMap, state, previousLayerNets) {
   var backward = param.backward;
-  var previousLayerDeltaMap = ArraySt$Cnn.reduceOneParam(ArraySt$Cnn.range(0, state.filterNumber - 1 | 0), (function (previousLayerDeltaMap, filterIndex) {
+  var currentLayerDeltaMap = ArraySt$Cnn.reduceOneParam(ArraySt$Cnn.range(0, state.filterNumber - 1 | 0), (function (currentLayerDeltaMap, filterIndex) {
           var padExpandDelta = ImmutableSparseMap$Cnn.getExn(padExpandDeltaMap, filterIndex);
           var filterState = ImmutableSparseMap$Cnn.getExn(state.filterStates, filterIndex);
           var flippedWeights = ImmutableSparseMap$Cnn.map(Filter$Cnn.getWeights(filterState), NP$Cnn.rotate180);
-          return NP$Cnn.addMatrixMap(previousLayerDeltaMap, ImmutableSparseMap$Cnn.mapi(LayerUtils$Cnn.createPreviousLayerDeltaMap([
+          return NP$Cnn.addMatrixMap(currentLayerDeltaMap, ImmutableSparseMap$Cnn.mapi(LayerUtils$Cnn.createPreviousLayerDeltaMap([
                               state.depthNumber,
                               state.inputWidth,
                               state.inputHeight
@@ -150,8 +150,8 @@ function _compute(param, padExpandDeltaMap, state, previousLayerNets) {
             state.inputWidth,
             state.inputHeight
           ]));
-  return ImmutableSparseMap$Cnn.mapi(previousLayerDeltaMap, (function (previousLayerDelta, depthIndex) {
-                return NP$Cnn.dot(previousLayerDelta, ImmutableSparseMap$Cnn.getExn(NP$Cnn.mapMatrixMap(previousLayerNets, (function (__x) {
+  return ImmutableSparseMap$Cnn.mapi(currentLayerDeltaMap, (function (currentLayerDelta, depthIndex) {
+                return NP$Cnn.dot(currentLayerDelta, ImmutableSparseMap$Cnn.getExn(NP$Cnn.mapMatrixMap(previousLayerNets, (function (__x) {
                                       return Matrix$Cnn.map(__x, backward);
                                     })), depthIndex));
               }));
@@ -209,13 +209,13 @@ function getPreviousLayerNet(param, previousLayerOutput) {
 
 function backward(previousLayerActivatorData, param, layerDelta, state) {
   var layerExpandDelta = _expandDeltaMapByStride(layerDelta, state);
-  var previousLayerDeltaMap = bpDelta(previousLayerActivatorData, [
+  var currentLayerDeltaMap = bpDelta(previousLayerActivatorData, [
         undefined,
         param[1]
       ], layerExpandDelta, state);
   var gradientData = computeGradient(OptionSt$Cnn.getExn(param[0]), layerExpandDelta, Caml_option.some(state));
   return [
-          previousLayerDeltaMap,
+          currentLayerDeltaMap,
           gradientData
         ];
 }

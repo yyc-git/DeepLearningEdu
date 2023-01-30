@@ -7,7 +7,7 @@ var Vector$Cnn = require("./Vector.bs.js");
 var ArraySt$Cnn = require("./ArraySt.bs.js");
 var Caml_option = require("rescript/lib/js/caml_option.js");
 var OptionSt$Cnn = require("./OptionSt.bs.js");
-var InitValue$Cnn = require("./InitValue.bs.js");
+var InitValue$Cnn = require("./more/InitValue.bs.js");
 var DebugUtils$Cnn = require("./DebugUtils.bs.js");
 var MatrixUtils$Cnn = require("./MatrixUtils.bs.js");
 

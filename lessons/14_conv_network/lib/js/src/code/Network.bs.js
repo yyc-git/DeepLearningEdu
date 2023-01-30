@@ -138,7 +138,7 @@ function backward(logState, labelVector, param, state, param$1) {
   var allLayerDataReverse = ArraySt$Cnn.reverse(ArraySt$Cnn.copy(state.allLayerData));
   var layerLength = ArraySt$Cnn.length(allLayerDataReverse);
   var match$1 = ArraySt$Cnn.reduceOneParami(allLayerDataReverse, (function (param, param$1, layerIndex) {
-          var currentLayerDelta = param[2];
+          var nextLayerDelta = param[2];
           var match = _getPreviousLayerNetAndOutput(layerLength, layerIndex, [
                 inputNet,
                 inputVector
@@ -146,12 +146,12 @@ function backward(logState, labelVector, param, state, param$1) {
           var match$1 = Curry._4(param$1.backward, _getPreviousLayerActivatorData(allLayerDataReverse, layerIndex), [
                 Caml_option.some(match[1]),
                 match[0]
-              ], OptionSt$Cnn.getExn(currentLayerDelta), param$1.state);
+              ], OptionSt$Cnn.getExn(nextLayerDelta), param$1.state);
           var gradientData = match$1[1];
           return [
                   ArraySt$Cnn.push(param[0], {
                         layerName: param$1.layerName,
-                        layerDelta: OptionSt$Cnn.getExn(currentLayerDelta),
+                        layerDelta: OptionSt$Cnn.getExn(nextLayerDelta),
                         gradientData: gradientData
                       }),
                   ArraySt$Cnn.push(param[1], gradientData),

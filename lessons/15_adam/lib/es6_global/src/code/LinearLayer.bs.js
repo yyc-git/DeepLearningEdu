@@ -1,15 +1,15 @@
-'use strict';
 
-var Curry = require("rescript/lib/js/curry.js");
-var Matrix$Cnn = require("./Matrix.bs.js");
-var Random$Cnn = require("./Random.bs.js");
-var Vector$Cnn = require("./Vector.bs.js");
-var ArraySt$Cnn = require("./ArraySt.bs.js");
-var Caml_option = require("rescript/lib/js/caml_option.js");
-var OptionSt$Cnn = require("./OptionSt.bs.js");
-var InitValue$Cnn = require("./InitValue.bs.js");
-var DebugUtils$Cnn = require("./DebugUtils.bs.js");
-var MatrixUtils$Cnn = require("./MatrixUtils.bs.js");
+
+import * as Curry from "../../../../../../node_modules/rescript/lib/es6/curry.js";
+import * as Matrix$Cnn from "./Matrix.bs.js";
+import * as Random$Cnn from "./Random.bs.js";
+import * as Vector$Cnn from "./Vector.bs.js";
+import * as ArraySt$Cnn from "./ArraySt.bs.js";
+import * as Caml_option from "../../../../../../node_modules/rescript/lib/es6/caml_option.js";
+import * as OptionSt$Cnn from "./OptionSt.bs.js";
+import * as InitValue$Cnn from "./more/InitValue.bs.js";
+import * as DebugUtils$Cnn from "./DebugUtils.bs.js";
+import * as MatrixUtils$Cnn from "./MatrixUtils.bs.js";
 
 function getOutputNumber(outputVector) {
   return Vector$Cnn.reducei(outputVector, (function (param, value, index) {
@@ -227,20 +227,23 @@ function createLayerData(state, activatorData) {
         };
 }
 
-exports.getOutputNumber = getOutputNumber;
-exports._createWeight = _createWeight;
-exports._createBias = _createBias;
-exports._createZeroWeight = _createZeroWeight;
-exports._createZeroBias = _createZeroBias;
-exports.getNodeCount = getNodeCount;
-exports.forward = forward;
-exports.createGradientDataSum = createGradientDataSum;
-exports.bpDelta = bpDelta;
-exports.computeGradient = computeGradient;
-exports.backward = backward;
-exports.addToGradientDataSum = addToGradientDataSum;
-exports.update = update;
-exports._createAdamData = _createAdamData;
-exports.create = create;
-exports.createLayerData = createLayerData;
+export {
+  getOutputNumber ,
+  _createWeight ,
+  _createBias ,
+  _createZeroWeight ,
+  _createZeroBias ,
+  getNodeCount ,
+  forward ,
+  createGradientDataSum ,
+  bpDelta ,
+  computeGradient ,
+  backward ,
+  addToGradientDataSum ,
+  update ,
+  _createAdamData ,
+  create ,
+  createLayerData ,
+  
+}
 /* No side effect */

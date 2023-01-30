@@ -151,7 +151,7 @@ function backward(logState, labelVector, param, state, param$1) {
           return [
                   ArraySt$Cnn.push(param[0], {
                         layerName: param$1.layerName,
-                        layerDelta: OptionSt$Cnn.getExn(nextLayerDelta),
+                        nextLayerDelta: OptionSt$Cnn.getExn(nextLayerDelta),
                         gradientData: gradientData
                       }),
                   ArraySt$Cnn.push(param[1], gradientData),

@@ -84,13 +84,13 @@ function createGradientDataSum(state) {
         ];
 }
 
-function bpDelta(previousLayerActivatorData, param, currentLayerDelta, state) {
+function bpDelta(previousLayerActivatorData, param, nextLayerDelta, state) {
   var match = OptionSt$Cnn.getExn(previousLayerActivatorData);
   var backward = match.backward;
   var previousLayerNet = OptionSt$Cnn.getExn(param[1]);
   var weight = state.weight;
   return Vector$Cnn.mapi(previousLayerNet, (function (previousLayerNetValue, j) {
-                return Curry._1(backward, previousLayerNetValue) * Vector$Cnn.dot(currentLayerDelta, MatrixUtils$Cnn.getCol(Matrix$Cnn.getRowCount(weight), Matrix$Cnn.getColCount(weight), j, Matrix$Cnn.getData(weight)));
+                return Curry._1(backward, previousLayerNetValue) * Vector$Cnn.dot(nextLayerDelta, MatrixUtils$Cnn.getCol(Matrix$Cnn.getRowCount(weight), Matrix$Cnn.getColCount(weight), j, Matrix$Cnn.getData(weight)));
               }));
 }
 
@@ -101,12 +101,12 @@ function computeGradient(input, delta, param) {
         ];
 }
 
-function backward(previousLayerActivatorData, previousLayerData, currentLayerDelta, state) {
-  var previousLayerDelta = bpDelta(previousLayerActivatorData, previousLayerData, currentLayerDelta, state);
+function backward(previousLayerActivatorData, previousLayerData, nextLayerDelta, state) {
+  var currentLayerDelta = bpDelta(previousLayerActivatorData, previousLayerData, nextLayerDelta, state);
   var previousLayerOutput = OptionSt$Cnn.getExn(previousLayerData[0]);
   return [
-          previousLayerDelta,
-          computeGradient(previousLayerOutput, currentLayerDelta, state)
+          currentLayerDelta,
+          computeGradient(previousLayerOutput, nextLayerDelta, state)
         ];
 }
 

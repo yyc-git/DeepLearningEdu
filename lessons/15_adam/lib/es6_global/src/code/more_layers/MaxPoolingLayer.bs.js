@@ -1,12 +1,12 @@
-'use strict';
 
-var NP$Cnn = require("../NP.bs.js");
-var Matrix$Cnn = require("../Matrix.bs.js");
-var ArraySt$Cnn = require("../ArraySt.bs.js");
-var OptionSt$Cnn = require("../OptionSt.bs.js");
-var LayerUtils$Cnn = require("./LayerUtils.bs.js");
-var MatrixUtils$Cnn = require("../MatrixUtils.bs.js");
-var ImmutableSparseMap$Cnn = require("../sparse_map/ImmutableSparseMap.bs.js");
+
+import * as NP$Cnn from "../NP.bs.js";
+import * as Matrix$Cnn from "../Matrix.bs.js";
+import * as ArraySt$Cnn from "../ArraySt.bs.js";
+import * as OptionSt$Cnn from "../OptionSt.bs.js";
+import * as LayerUtils$Cnn from "./LayerUtils.bs.js";
+import * as MatrixUtils$Cnn from "../MatrixUtils.bs.js";
+import * as ImmutableSparseMap$Cnn from "../sparse_map/ImmutableSparseMap.bs.js";
 
 function create(inputWidth, inputHeight, filterWidth, filterHeight, strideOpt, depthNumberOpt, param) {
   var stride = strideOpt !== undefined ? strideOpt : 1;
@@ -65,9 +65,9 @@ function bpDelta(param, param$1, nextLayerDelta, state) {
                 ]));
 }
 
-function backward(param, previousLayerData, layerDelta, state) {
+function backward(param, previousLayerData, nextLayerDelta, state) {
   return [
-          bpDelta(undefined, previousLayerData, layerDelta, state),
+          bpDelta(undefined, previousLayerData, nextLayerDelta, state),
           undefined
         ];
 }
@@ -103,12 +103,15 @@ function createLayerData(state, activatorData) {
         };
 }
 
-exports.create = create;
-exports.forward = forward;
-exports.bpDelta = bpDelta;
-exports.backward = backward;
-exports.createGradientDataSum = createGradientDataSum;
-exports.addToGradientDataSum = addToGradientDataSum;
-exports.update = update;
-exports.createLayerData = createLayerData;
+export {
+  create ,
+  forward ,
+  bpDelta ,
+  backward ,
+  createGradientDataSum ,
+  addToGradientDataSum ,
+  update ,
+  createLayerData ,
+  
+}
 /* No side effect */

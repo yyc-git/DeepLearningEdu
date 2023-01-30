@@ -1,16 +1,16 @@
-'use strict';
 
-var Curry = require("rescript/lib/js/curry.js");
-var NP$Cnn = require("../NP.bs.js");
-var Filter$Cnn = require("./Filter.bs.js");
-var Matrix$Cnn = require("../Matrix.bs.js");
-var Random$Cnn = require("../Random.bs.js");
-var ArraySt$Cnn = require("../ArraySt.bs.js");
-var Caml_option = require("rescript/lib/js/caml_option.js");
-var OptionSt$Cnn = require("../OptionSt.bs.js");
-var LayerUtils$Cnn = require("./LayerUtils.bs.js");
-var MatrixUtils$Cnn = require("../MatrixUtils.bs.js");
-var ImmutableSparseMap$Cnn = require("../sparse_map/ImmutableSparseMap.bs.js");
+
+import * as Curry from "../../../../../../../node_modules/rescript/lib/es6/curry.js";
+import * as NP$Cnn from "../NP.bs.js";
+import * as Filter$Cnn from "./Filter.bs.js";
+import * as Matrix$Cnn from "../Matrix.bs.js";
+import * as Random$Cnn from "../Random.bs.js";
+import * as ArraySt$Cnn from "../ArraySt.bs.js";
+import * as Caml_option from "../../../../../../../node_modules/rescript/lib/es6/caml_option.js";
+import * as OptionSt$Cnn from "../OptionSt.bs.js";
+import * as LayerUtils$Cnn from "./LayerUtils.bs.js";
+import * as MatrixUtils$Cnn from "../MatrixUtils.bs.js";
+import * as ImmutableSparseMap$Cnn from "../sparse_map/ImmutableSparseMap.bs.js";
 
 function create(inputWidth, inputHeight, filterWidth, filterHeight, filterNumberOpt, zeroPaddingOpt, strideOpt, depthNumberOpt, initValueMethodOpt, randomFuncOpt, param) {
   var filterNumber = filterNumberOpt !== undefined ? filterNumberOpt : 1;
@@ -157,8 +157,8 @@ function _compute(param, padExpandDeltaMap, state, previousLayerNets) {
               }));
 }
 
-function bpDelta(previousLayerActivatorData, param, layerExpandDelta, state) {
-  var __x = _paddingDeltaMap(layerExpandDelta, state);
+function bpDelta(previousLayerActivatorData, param, nextLayerExpandDelta, state) {
+  var __x = _paddingDeltaMap(nextLayerExpandDelta, state);
   return _compute(OptionSt$Cnn.getExn(previousLayerActivatorData), __x, state, OptionSt$Cnn.getExn(param[1]));
 }
 
@@ -207,13 +207,13 @@ function getPreviousLayerNet(param, previousLayerOutput) {
               }));
 }
 
-function backward(previousLayerActivatorData, param, layerDelta, state) {
-  var layerExpandDelta = _expandDeltaMapByStride(layerDelta, state);
+function backward(previousLayerActivatorData, param, nextLayerDelta, state) {
+  var nextLayerExpandDelta = _expandDeltaMapByStride(nextLayerDelta, state);
   var currentLayerDeltaMap = bpDelta(previousLayerActivatorData, [
         undefined,
         param[1]
-      ], layerExpandDelta, state);
-  var gradientData = computeGradient(OptionSt$Cnn.getExn(param[0]), layerExpandDelta, Caml_option.some(state));
+      ], nextLayerExpandDelta, state);
+  var gradientData = computeGradient(OptionSt$Cnn.getExn(param[0]), nextLayerExpandDelta, Caml_option.some(state));
   return [
           currentLayerDeltaMap,
           gradientData
@@ -281,21 +281,24 @@ function createLayerData(state, activatorData) {
         };
 }
 
-exports.create = create;
-exports._padding = _padding;
-exports._crossCorrelation2D = _crossCorrelation2D;
-exports._crossCorrelation3D = _crossCorrelation3D;
-exports._elementWiseOp = _elementWiseOp;
-exports.forward = forward;
-exports._expandDeltaMapByStride = _expandDeltaMapByStride;
-exports._paddingDeltaMap = _paddingDeltaMap;
-exports._compute = _compute;
-exports.bpDelta = bpDelta;
-exports.computeGradient = computeGradient;
-exports.createGradientDataSum = createGradientDataSum;
-exports.getPreviousLayerNet = getPreviousLayerNet;
-exports.backward = backward;
-exports.addToGradientDataSum = addToGradientDataSum;
-exports.update = update;
-exports.createLayerData = createLayerData;
+export {
+  create ,
+  _padding ,
+  _crossCorrelation2D ,
+  _crossCorrelation3D ,
+  _elementWiseOp ,
+  forward ,
+  _expandDeltaMapByStride ,
+  _paddingDeltaMap ,
+  _compute ,
+  bpDelta ,
+  computeGradient ,
+  createGradientDataSum ,
+  getPreviousLayerNet ,
+  backward ,
+  addToGradientDataSum ,
+  update ,
+  createLayerData ,
+  
+}
 /* No side effect */

@@ -129,8 +129,8 @@ let backward: LayerAbstractType.backward<
   MatrixMap.t,
   LayerAbstractType.none,
   LayerAbstractType.none,
-> = (_, previousLayerData, layerDelta, state) => {
-  (bpDelta(None, previousLayerData, layerDelta, state), None)
+> = (_, previousLayerData, nextLayerDelta, state) => {
+  (bpDelta(None, previousLayerData, nextLayerDelta, state), None)
 }
 
 let createGradientDataSum: LayerAbstractType.createGradientDataSum<

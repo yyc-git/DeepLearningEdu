@@ -48,16 +48,16 @@ function bpDelta(param, param$1, nextLayerDelta, state) {
   var previousLayerOutput = OptionSt$Cnn.getExn(param$1[0]);
   var outputRow = state.outputHeight;
   var outputCol = state.outputWidth;
-  return ArraySt$Cnn.reduceOneParam(ArraySt$Cnn.range(0, state.depthNumber - 1 | 0), (function (previousLayerDeltaMap, depthIndex) {
+  return ArraySt$Cnn.reduceOneParam(ArraySt$Cnn.range(0, state.depthNumber - 1 | 0), (function (currentLayerDeltaMap, depthIndex) {
                 var input = ImmutableSparseMap$Cnn.getExn(previousLayerOutput, depthIndex);
-                var previousLayerDelta = ImmutableSparseMap$Cnn.getExn(previousLayerDeltaMap, depthIndex);
-                var previousLayerDelta$1 = ArraySt$Cnn.reduceOneParam(ArraySt$Cnn.range(0, outputRow - 1 | 0), (function (previousLayerDelta, rowIndex) {
-                        return ArraySt$Cnn.reduceOneParam(ArraySt$Cnn.range(0, outputCol - 1 | 0), (function (previousLayerDelta, colIndex) {
+                var currentLayerDelta = ImmutableSparseMap$Cnn.getExn(currentLayerDeltaMap, depthIndex);
+                var currentLayerDelta$1 = ArraySt$Cnn.reduceOneParam(ArraySt$Cnn.range(0, outputRow - 1 | 0), (function (currentLayerDelta, rowIndex) {
+                        return ArraySt$Cnn.reduceOneParam(ArraySt$Cnn.range(0, outputCol - 1 | 0), (function (currentLayerDelta, colIndex) {
                                       var match = NP$Cnn.getMaxIndex(LayerUtils$Cnn.getConvolutionRegion2D(input, rowIndex, colIndex, state.filterWidth, state.filterHeight, state.stride));
-                                      return MatrixUtils$Cnn.setValue(previousLayerDelta, NP$Cnn.getMatrixMapValue(nextLayerDelta, depthIndex, rowIndex, colIndex), Math.imul(rowIndex, state.stride) + match[1] | 0, Math.imul(colIndex, state.stride) + match[2] | 0);
-                                    }), previousLayerDelta);
-                      }), previousLayerDelta);
-                return ImmutableSparseMap$Cnn.set(previousLayerDeltaMap, depthIndex, previousLayerDelta$1);
+                                      return MatrixUtils$Cnn.setValue(currentLayerDelta, NP$Cnn.getMatrixMapValue(nextLayerDelta, depthIndex, rowIndex, colIndex), Math.imul(rowIndex, state.stride) + match[1] | 0, Math.imul(colIndex, state.stride) + match[2] | 0);
+                                    }), currentLayerDelta);
+                      }), currentLayerDelta);
+                return ImmutableSparseMap$Cnn.set(currentLayerDeltaMap, depthIndex, currentLayerDelta$1);
               }), LayerUtils$Cnn.createPreviousLayerDeltaMap([
                   state.depthNumber,
                   state.inputWidth,

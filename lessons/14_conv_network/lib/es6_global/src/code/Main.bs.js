@@ -27,7 +27,7 @@ function _createNetwork1(param) {
             ]);
 }
 
-function _createNetwork2(param) {
+function _createConvNetwork(param) {
   return Network$Cnn.create(NoOptimizerUtils$Cnn.buildNetworkNoOptimizerData([
                   0,
                   0.001,
@@ -45,7 +45,7 @@ function _createNetwork2(param) {
             ]);
 }
 
-var match = _createNetwork2(undefined);
+var match = _createConvNetwork(undefined);
 
 var networkState = Network$Cnn.setLossData(match[0], CrossEntropyLoss$Cnn.buildData(undefined));
 
@@ -69,7 +69,7 @@ var networkState$1 = match$1[0];
 
 export {
   _createNetwork1 ,
-  _createNetwork2 ,
+  _createConvNetwork ,
   networkState$1 as networkState,
   logState ,
   

@@ -65,9 +65,9 @@ function bpDelta(param, param$1, nextLayerDelta, state) {
                 ]));
 }
 
-function backward(param, previousLayerData, layerDelta, state) {
+function backward(param, previousLayerData, nextLayerDelta, state) {
   return [
-          bpDelta(undefined, previousLayerData, layerDelta, state),
+          bpDelta(undefined, previousLayerData, nextLayerDelta, state),
           undefined
         ];
 }

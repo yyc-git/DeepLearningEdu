@@ -151,7 +151,7 @@ let backward = (
             (
               {
                 layerName: layerName,
-                layerDelta: nextLayerDelta->OptionSt.getExn->Obj.magic,
+                nextLayerDelta: nextLayerDelta->OptionSt.getExn->Obj.magic,
                 gradientData: gradientData->Obj.magic,
               }: DebugLog.backward
             ),

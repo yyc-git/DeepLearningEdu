@@ -1,22 +1,22 @@
+'use strict';
 
-
-import * as Curry from "../../../../../../node_modules/rescript/lib/es6/curry.js";
-import * as Mnist from "mnist";
-import * as Log$Cnn from "./Log.bs.js";
-import * as Caml_obj from "../../../../../../node_modules/rescript/lib/es6/caml_obj.js";
-import * as Mnist$Cnn from "./external/mnist.bs.js";
-import * as Caml_array from "../../../../../../node_modules/rescript/lib/es6/caml_array.js";
-import * as Caml_int32 from "../../../../../../node_modules/rescript/lib/es6/caml_int32.js";
-import * as Tuple2$Cnn from "./tuple/Tuple2.bs.js";
-import * as ArraySt$Cnn from "./ArraySt.bs.js";
-import * as Caml_option from "../../../../../../node_modules/rescript/lib/es6/caml_option.js";
-import * as DebugLog$Cnn from "./DebugLog.bs.js";
-import * as OptionSt$Cnn from "./OptionSt.bs.js";
-import * as Exception$Cnn from "./Exception.bs.js";
-import * as Optimizer$Cnn from "./optimizer/Optimizer.bs.js";
-import * as LinearLayer$Cnn from "./LinearLayer.bs.js";
-import * as CrossEntropyLoss$Cnn from "./CrossEntropyLoss.bs.js";
-import * as IdentityActivator$Cnn from "./IdentityActivator.bs.js";
+var Curry = require("rescript/lib/js/curry.js");
+var Mnist = require("mnist");
+var Log$Cnn = require("./Log.bs.js");
+var Caml_obj = require("rescript/lib/js/caml_obj.js");
+var Mnist$Cnn = require("./external/mnist.bs.js");
+var Caml_array = require("rescript/lib/js/caml_array.js");
+var Caml_int32 = require("rescript/lib/js/caml_int32.js");
+var Tuple2$Cnn = require("./tuple/Tuple2.bs.js");
+var ArraySt$Cnn = require("./ArraySt.bs.js");
+var Caml_option = require("rescript/lib/js/caml_option.js");
+var DebugLog$Cnn = require("./DebugLog.bs.js");
+var OptionSt$Cnn = require("./OptionSt.bs.js");
+var Exception$Cnn = require("./Exception.bs.js");
+var Optimizer$Cnn = require("./optimizer/Optimizer.bs.js");
+var LinearLayer$Cnn = require("./LinearLayer.bs.js");
+var CrossEntropyLoss$Cnn = require("./CrossEntropyLoss.bs.js");
+var IdentityActivator$Cnn = require("./IdentityActivator.bs.js");
 
 function _getAllLayerWeightAndBias(state) {
   return ArraySt$Cnn.map(state.allLayerData, (function (param) {
@@ -151,7 +151,7 @@ function backward(logState, labelVector, param, state, param$1) {
           return [
                   ArraySt$Cnn.push(param[0], {
                         layerName: param$1.layerName,
-                        layerDelta: OptionSt$Cnn.getExn(nextLayerDelta),
+                        nextLayerDelta: OptionSt$Cnn.getExn(nextLayerDelta),
                         gradientData: gradientData
                       }),
                   ArraySt$Cnn.push(param[1], gradientData),
@@ -512,23 +512,20 @@ function trainAndInference(param, param$1, param$2) {
             ]);
 }
 
-export {
-  _getAllLayerWeightAndBias ,
-  create ,
-  setLossData ,
-  _getForwardOutput ,
-  forward ,
-  _getPreviousLayerNetAndOutput ,
-  _getPreviousLayerActivatorData ,
-  backward ,
-  _getInputNet ,
-  _update ,
-  trainMiniBatchData ,
-  MiniBatch ,
-  _train ,
-  train ,
-  inference ,
-  trainAndInference ,
-  
-}
+exports._getAllLayerWeightAndBias = _getAllLayerWeightAndBias;
+exports.create = create;
+exports.setLossData = setLossData;
+exports._getForwardOutput = _getForwardOutput;
+exports.forward = forward;
+exports._getPreviousLayerNetAndOutput = _getPreviousLayerNetAndOutput;
+exports._getPreviousLayerActivatorData = _getPreviousLayerActivatorData;
+exports.backward = backward;
+exports._getInputNet = _getInputNet;
+exports._update = _update;
+exports.trainMiniBatchData = trainMiniBatchData;
+exports.MiniBatch = MiniBatch;
+exports._train = _train;
+exports.train = train;
+exports.inference = inference;
+exports.trainAndInference = trainAndInference;
 /* mnist Not a pure module */

@@ -100,17 +100,17 @@ let createGradientDataSum: LayerAbstractType.createGradientDataSum<Matrix.t, Vec
 let bpDelta: LayerAbstractType.bpDelta<Vector.t, Vector.t> = (
   previousLayerActivatorData,
   (_, previousLayerNet),
-  currentLayerDelta,
+  nextLayerDelta,
   state,
 ) => {
   let {backward} = previousLayerActivatorData->OptionSt.getExn
   let previousLayerNet = previousLayerNet->OptionSt.getExn
   let {weight} = state->Obj.magic
 
-  let previousLayerDelta = previousLayerNet->Vector.mapi((previousLayerNetValue, j) => {
+  let currentLayerDelta = previousLayerNet->Vector.mapi((previousLayerNetValue, j) => {
     previousLayerNetValue->backward *.
       Vector.dot(
-        currentLayerDelta,
+        nextLayerDelta,
         MatrixUtils.getCol(
           Matrix.getRowCount(weight),
           Matrix.getColCount(weight),
@@ -120,7 +120,7 @@ let bpDelta: LayerAbstractType.bpDelta<Vector.t, Vector.t> = (
       )
   })
 
-  previousLayerDelta->Some
+  currentLayerDelta->Some
 }
 
 let computeGradient: LayerAbstractType.computeGradient<Vector.t, Vector.t, Matrix.t, Vector.t> = (
@@ -140,20 +140,20 @@ let computeGradient: LayerAbstractType.computeGradient<Vector.t, Vector.t, Matri
 let backward: LayerAbstractType.backward<Vector.t, Vector.t, Matrix.t, Vector.t> = (
   previousLayerActivatorData,
   (previousLayerOutput, previousLayerNet) as previousLayerData,
-  currentLayerDelta,
+  nextLayerDelta,
   state,
 ) => {
-  let previousLayerDelta = bpDelta(
+  let currentLayerDelta = bpDelta(
     previousLayerActivatorData,
     previousLayerData,
-    currentLayerDelta,
+    nextLayerDelta,
     state,
   )
   let previousLayerOutput = previousLayerOutput->OptionSt.getExn
 
   (
-    previousLayerDelta,
-    computeGradient(previousLayerOutput, currentLayerDelta, state->Obj.magic)->Some,
+    currentLayerDelta,
+    computeGradient(previousLayerOutput, nextLayerDelta, state->Obj.magic)->Some,
   )
 }
 

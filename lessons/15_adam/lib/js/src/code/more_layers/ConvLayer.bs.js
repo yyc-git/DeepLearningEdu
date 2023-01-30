@@ -157,8 +157,8 @@ function _compute(param, padExpandDeltaMap, state, previousLayerNets) {
               }));
 }
 
-function bpDelta(previousLayerActivatorData, param, layerExpandDelta, state) {
-  var __x = _paddingDeltaMap(layerExpandDelta, state);
+function bpDelta(previousLayerActivatorData, param, nextLayerExpandDelta, state) {
+  var __x = _paddingDeltaMap(nextLayerExpandDelta, state);
   return _compute(OptionSt$Cnn.getExn(previousLayerActivatorData), __x, state, OptionSt$Cnn.getExn(param[1]));
 }
 
@@ -207,13 +207,13 @@ function getPreviousLayerNet(param, previousLayerOutput) {
               }));
 }
 
-function backward(previousLayerActivatorData, param, layerDelta, state) {
-  var layerExpandDelta = _expandDeltaMapByStride(layerDelta, state);
+function backward(previousLayerActivatorData, param, nextLayerDelta, state) {
+  var nextLayerExpandDelta = _expandDeltaMapByStride(nextLayerDelta, state);
   var currentLayerDeltaMap = bpDelta(previousLayerActivatorData, [
         undefined,
         param[1]
-      ], layerExpandDelta, state);
-  var gradientData = computeGradient(OptionSt$Cnn.getExn(param[0]), layerExpandDelta, Caml_option.some(state));
+      ], nextLayerExpandDelta, state);
+  var gradientData = computeGradient(OptionSt$Cnn.getExn(param[0]), nextLayerExpandDelta, Caml_option.some(state));
   return [
           currentLayerDeltaMap,
           gradientData

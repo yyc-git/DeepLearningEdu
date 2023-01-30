@@ -300,12 +300,12 @@ let _compute = ({backward}, padExpandDeltaMap, state, previousLayerNets) => {
 let bpDelta: LayerAbstractType.bpDelta<MatrixMap.t, MatrixMap.t> = (
   previousLayerActivatorData,
   (_, previousLayerNet),
-  layerExpandDelta: ImmutableSparseMapType.t<filterIndex, Matrix.t>,
+  nextLayerExpandDelta: ImmutableSparseMapType.t<filterIndex, Matrix.t>,
   state,
 ) => {
   let state = state->Obj.magic
 
-  layerExpandDelta
+  nextLayerExpandDelta
   ->_paddingDeltaMap(state)
   ->_compute(
     previousLayerActivatorData->OptionSt.getExn,
@@ -385,23 +385,23 @@ let backward: LayerAbstractType.backward<
   previousLayerActivatorData,
   // (previousLayerPaddedOutput, previousLayerNet),
   (previousLayerOutput, previousLayerNet),
-  layerDelta: ImmutableSparseMapType.t<filterIndex, Matrix.t>,
+  nextLayerDelta: ImmutableSparseMapType.t<filterIndex, Matrix.t>,
   state,
 ) => {
-  // ("layerDelta:", layerDelta )->Log.printForDebug->ignore
+  // ("nextLayerDelta:", nextLayerDelta )->Log.printForDebug->ignore
 
-  let layerExpandDelta = _expandDeltaMapByStride(layerDelta, state->Obj.magic)
+  let nextLayerExpandDelta = _expandDeltaMapByStride(nextLayerDelta, state->Obj.magic)
 
   let currentLayerDeltaMap = bpDelta(
     previousLayerActivatorData,
     (None, previousLayerNet),
-    layerExpandDelta,
+    nextLayerExpandDelta,
     state,
   )
 
   let gradientData = computeGradient(
     previousLayerOutput->OptionSt.getExn,
-    layerExpandDelta,
+    nextLayerExpandDelta,
     state->Some,
   )
 

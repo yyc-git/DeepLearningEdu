@@ -128,7 +128,7 @@ let backward = (
   let (logData, allGradientDataReverse, _) =
     allLayerDataReverse->ArraySt.reduceOneParami(
       (.
-        (logData, arr, currentLayerDelta),
+        (logData, arr, nextLayerDelta),
         {layerName, state, backward, activatorData}: LayerAbstractType.layerData,
         layerIndex,
       ) => {
@@ -139,10 +139,10 @@ let backward = (
           forwardResultReverseRemain,
         )
 
-        let (previousLayerDelta, gradientData) = backward(
+        let (currentLayerDelta, gradientData) = backward(
           _getPreviousLayerActivatorData(allLayerDataReverse, layerIndex),
           (output->Some, net),
-          currentLayerDelta->OptionSt.getExn->Obj.magic,
+          nextLayerDelta->OptionSt.getExn->Obj.magic,
           state,
         )
 
@@ -151,13 +151,13 @@ let backward = (
             (
               {
                 layerName: layerName,
-                layerDelta: currentLayerDelta->OptionSt.getExn->Obj.magic,
+                layerDelta: nextLayerDelta->OptionSt.getExn->Obj.magic,
                 gradientData: gradientData->Obj.magic,
               }: DebugLog.backward
             ),
           ),
           arr->ArraySt.push(gradientData),
-          previousLayerDelta,
+          currentLayerDelta,
         )
       },
       ([], [], computeDelta(forwardResultOutput, labelVector)->Obj.magic),
