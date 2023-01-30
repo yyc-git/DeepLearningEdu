@@ -852,8 +852,8 @@ function checkGradient(param) {
   var convLayer2DeltaMap = NP$8_cnn.createMatrixMap((function (param) {
           return 1;
         }), depth, row, col);
-  var convLayer1DeltaMap = ConvLayer$8_cnn.bpDeltaMap(stateForConvLayer2, match$1[1][1], convLayer2DeltaMap);
-  var stateForConvLayer1$1 = ConvLayer$8_cnn.bpGradient(stateForConvLayer1, match$1[0], convLayer1DeltaMap);
+  var convLayer1DeltaMap = ConvLayer$8_cnn.bpDeltaMap(stateForConvLayer2, match$1[1][0], convLayer2DeltaMap);
+  var stateForConvLayer1$1 = ConvLayer$8_cnn.computeGradient(stateForConvLayer1, match$1[0], convLayer1DeltaMap);
   var filterState = ImmutableSparseMap$8_cnn.getExn(stateForConvLayer1$1.filterStates, 0);
   var weights = filterState.weights;
   return ImmutableSparseMap$8_cnn.forEachi(filterState.weightGradients, (function (weightGradient, depthIndex) {

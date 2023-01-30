@@ -25,7 +25,7 @@ let _initForSimple = () => {
     // ],
   ]->NP.createMatrixMapByDataArr
 
-  // let deltaMap = [
+  // let nextLayerDeltaMap = [
   //   [[0., 1., 1.], [2., 2., 2.], [1., 0., 0.]],
   //   // [[1., 0., 2.], [0., 0., 0.], [1., 2., 1.]],
   // ]->NP.createMatrixMapByDataArr
@@ -104,7 +104,7 @@ let _initForMultiDepthsAndFilterNumbers = () => {
       ],
     ]->NP.createMatrixMapByDataArr
 
-  // let deltaMap = [
+  // let nextLayerDeltaMap = [
   //   [[0., 1., 1.], [2., 2., 2.], [1., 0., 0.]],
   //   // [[1., 0., 2.], [0., 0., 0.], [1., 2., 1.]],
   // ]->NP.createMatrixMapByDataArr
@@ -214,7 +214,7 @@ let _initForMultiStridesAndPaddings = () => {
       ],
     ]->NP.createMatrixMapByDataArr
 
-  // let deltaMap = [
+  // let nextLayerDeltaMap = [
   //   [[0., 1., 1.], [2., 2., 2.], [1., 0., 0.]],
   //   // [[1., 0., 2.], [0., 0., 0.], [1., 2., 1.]],
   // ]->NP.createMatrixMapByDataArr
@@ -308,7 +308,7 @@ let checkGradient = (((stateForConvLayer1, stateForConvLayer2), inputs)) => {
   //   let ((stateForConvLayer1, stateForConvLayer2), inputs) = _initForMultiDepthsAndFilterNumbers()
   //   let ((stateForConvLayer1, stateForConvLayer2), inputs) = _initForMultiStridesAndPaddings()
 
-  // let (inputs, deltaMap, state) = init()
+  // let (inputs, nextLayerDeltaMap, state) = init()
 
   // let (paddedInputs, (nets, outputMap)) = forward(state, inputs)
   let (paddedInputs, (nets, outputMap)) = forward(ReluActivator.forward, stateForConvLayer1, inputs)
@@ -334,13 +334,15 @@ let checkGradient = (((stateForConvLayer1, stateForConvLayer2), inputs)) => {
   // Js.log(outputMap)
   // Js.log(convLayer2DeltaMap)
   // Js.log("b1")
-  // let lastLayerDeltaMap = bpDeltaMap(state, inputs, deltaMap)
-  let convLayer1DeltaMap = bpDeltaMap(stateForConvLayer2, outputMap, convLayer2DeltaMap)
+  // let currentLayerDeltaMap = bpDeltaMap(state, inputs, nextLayerDeltaMap)
+  // let convLayer1DeltaMap = bpDeltaMap(stateForConvLayer2, outputMap, convLayer2DeltaMap)
+  let convLayer1DeltaMap = bpDeltaMap(stateForConvLayer2, nets, convLayer2DeltaMap)
   // Js.log("b2")
 
-  let stateForConvLayer1 = bpGradient(stateForConvLayer1, paddedInputs, convLayer1DeltaMap)
+  let stateForConvLayer1 = computeGradient(stateForConvLayer1, paddedInputs, convLayer1DeltaMap)
 
-  // let state = backward(state, inputs, deltaMap)
+
+  // let state = backward(state, inputs, nextLayerDeltaMap)
 
   let epsilon = 10e-4
   let {weightGradients, weights} as filterState: Filter.state =

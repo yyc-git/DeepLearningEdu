@@ -18,7 +18,7 @@ function getConvolutionRegion3D(inputs, rowIndex, colIndex, filterWidth, filterH
               }));
 }
 
-function createLastLayerDeltaMap(param) {
+function createCurrentLayerDeltaMap(param) {
   return NP$8_cnn.zeroMatrixMap(param[0], param[2], param[1]);
 }
 
@@ -26,7 +26,7 @@ export {
   computeOutputSize ,
   getConvolutionRegion2D ,
   getConvolutionRegion3D ,
-  createLastLayerDeltaMap ,
+  createCurrentLayerDeltaMap ,
   
 }
 /* No side effect */

@@ -174,10 +174,10 @@ let forward = (activate, state, inputs: ImmutableSparseMapType.t<depthIndex, Mat
 }
 
 let _expandDeltaMapByStride = (
-  deltaMap,
+  nextLayerDeltaMap,
   {inputWidth, inputHeight, filterWidth, filterHeight, stride, zeroPadding},
 ) => {
-  let (_, _, deltaMapDepth) = NP.getMatrixMapSize(deltaMap)
+  let (_, _, deltaMapDepth) = NP.getMatrixMapSize(nextLayerDeltaMap)
 
   let expandDeltaWidth = LayerUtils.computeOutputSize(inputWidth, filterWidth, zeroPadding, 1)
   let expandDeltaHeight = LayerUtils.computeOutputSize(inputHeight, filterHeight, zeroPadding, 1)
@@ -187,7 +187,7 @@ let _expandDeltaMapByStride = (
   // let expandDelta = NP.zeroMatrix(expandDeltaHeight, expandDeltaWidth)
   let expandDeltaMap = NP.zeroMatrixMap(deltaMapDepth, expandDeltaHeight, expandDeltaWidth)
 
-  deltaMap->ImmutableSparseMap.mapi((. delta, i) => {
+  nextLayerDeltaMap->ImmutableSparseMap.mapi((. delta, i) => {
     let expandDelta = expandDeltaMap->ImmutableSparseMap.getExn(i)
 
     delta->NP.reduceMatrix((expandDelta, value, rowIndex, colIndex) => {
@@ -208,18 +208,18 @@ let _paddingDeltaMap = (expandDeltaMap, {inputWidth, filterWidth}) => {
 
 //     let invertedWeights = NP.rotate180(Filter.getWeights(filterState))
 
-//     let delta = _crossCorrelation3D(expandDelta, invertedWeights, LayerUtils. createLastLayerDeltaMap(state), 1, 0)
+//     let delta = _crossCorrelation3D(expandDelta, invertedWeights, LayerUtils. createCurrentLayerDeltaMap(state), 1, 0)
 
 //     Matrix.add(totalDelta, delta)
-//   }, LayerUtils. createLastLayerDeltaMap(state))
+//   }, LayerUtils. createCurrentLayerDeltaMap(state))
 // }
 
-let _compute = (padExpandDeltaMap, state, inputs) => {
-  let lastLayerNets = inputs->NP.mapMatrixMap(Matrix.map(_, ReluActivator.invert))
+let _compute = (padExpandDeltaMap, state, inputNets) => {
+  let lastLayerNets = inputNets->NP.mapMatrixMap(Matrix.map(_, ReluActivator.invert))
 
-  let lastLayerDeltaMap =
+  let currentLayerDeltaMap =
     ArraySt.range(0, state.filterNumber - 1)->ArraySt.reduceOneParam(
-      (. lastLayerDeltaMap, filterIndex) => {
+      (. currentLayerDeltaMap, filterIndex) => {
         let padExpandDelta = padExpandDeltaMap->ImmutableSparseMap.getExn(filterIndex)
         let filterState = state.filterStates->ImmutableSparseMap.getExn(filterIndex)
 
@@ -227,8 +227,8 @@ let _compute = (padExpandDeltaMap, state, inputs) => {
           Filter.getWeights(filterState)->ImmutableSparseMap.map((. weight) => weight->NP.rotate180)
 
         NP.addMatrixMap(
-          lastLayerDeltaMap,
-          LayerUtils.createLastLayerDeltaMap((
+          currentLayerDeltaMap,
+          LayerUtils.createCurrentLayerDeltaMap((
             state.depthNumber,
             state.inputWidth,
             state.inputHeight,
@@ -243,10 +243,14 @@ let _compute = (padExpandDeltaMap, state, inputs) => {
           }),
         )
       },
-      LayerUtils.createLastLayerDeltaMap((state.depthNumber, state.inputWidth, state.inputHeight)),
+      LayerUtils.createCurrentLayerDeltaMap((
+        state.depthNumber,
+        state.inputWidth,
+        state.inputHeight,
+      )),
     )
 
-  lastLayerDeltaMap->ImmutableSparseMap.mapi((. lastLayerDelta, depthIndex) => {
+  currentLayerDeltaMap->ImmutableSparseMap.mapi((. lastLayerDelta, depthIndex) => {
     NP.dot(
       lastLayerDelta,
       lastLayerNets
@@ -263,22 +267,22 @@ let _compute = (padExpandDeltaMap, state, inputs) => {
 // 计算传递到上一层的delta map
 let bpDeltaMap = (
   state,
-  inputs: ImmutableSparseMapType.t<depthIndex, Matrix.t>,
-  deltaMap: ImmutableSparseMapType.t<filterIndex, Matrix.t>,
+  inputNets: ImmutableSparseMapType.t<depthIndex, Matrix.t>,
+  nextLayerDeltaMap: ImmutableSparseMapType.t<filterIndex, Matrix.t>,
 ) => {
-  _expandDeltaMapByStride(deltaMap, state)
+  _expandDeltaMapByStride(nextLayerDeltaMap, state)
   // ->Log.printForDebug
   ->_paddingDeltaMap(state)
   // ->Log.printForDebug
   // ->_computeDeltaWeightConv(state)
   // ->_multiplyActivatorDeriv(nets)
-  ->_compute(state, inputs)
+  ->_compute(state, inputNets)
 }
 
-// let bpGradient = (state, outputMap, deltaMap) => {
-let bpGradient = (state, paddedInputs, deltaMap) => {
-  // ("bbb", deltaMap)->Log.printForDebug->ignore
-  let expandDeltaMap = _expandDeltaMapByStride(deltaMap, state)
+// let computeGradient = (state, outputMap, nextLayerDeltaMap) => {
+let computeGradient = (state, paddedInputs, nextLayerDeltaMap) => {
+  // ("bbb", nextLayerDeltaMap)->Log.printForDebug->ignore
+  let expandDeltaMap = _expandDeltaMapByStride(nextLayerDeltaMap, state)
 
   ArraySt.range(0, state.filterNumber - 1)->ArraySt.reduceOneParam((. state, filterIndex) => {
     let filterState: Filter.state = state.filterStates->ImmutableSparseMap.getExn(filterIndex)
@@ -314,14 +318,14 @@ let bpGradient = (state, paddedInputs, deltaMap) => {
   }, state)
 }
 
-let backward = (state, inputs, deltaMap) => {
+let backward = (state, (inputs, inputNets), nextLayerDeltaMap) => {
   // TODO remove forward
   let (paddedInputs, _) = forward(ReluActivator.forward, state, inputs)
 
-  // let updatedDelta = bpDeltaMap(state, nets, deltaMap)
-  let lastLayerDeltaMap = bpDeltaMap(state, inputs, deltaMap)
+  // let updatedDelta = bpDeltaMap(state, nets, nextLayerDeltaMap)
+  let currentLayerDeltaMap = bpDeltaMap(state, inputNets, nextLayerDeltaMap)
 
-  let state = bpGradient(state, paddedInputs, deltaMap)
+  let state = computeGradient(state, paddedInputs, currentLayerDeltaMap)
 
   state
 }
