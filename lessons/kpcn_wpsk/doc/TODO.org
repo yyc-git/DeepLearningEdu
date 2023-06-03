@@ -1,0 +1,35 @@
+* DONE read code
+
+# * TODO run data_preprocess.py
+
+# with dataset
+
+
+
+* DONE run train.py
+
+
+
+
+* DONE run test.py
+
+- with trained .pt
+- with default .pt
+
+
+
+* TODO make clear x_alpha,x_guidemap in net.py!
+
+
+* TODO use CPU backend AI3D to train and inference
+
+add RepVGG Layer:
+    implement forward, backward
+
+
+* TODO AI3D implement autograd, so custom layer(e.g. RepVGG Layer) only need forward!
+
+refer to:
+https://www.qiniu.com/qfans/qnso-65425429
+
+https://www.google.com/search?q=pytorch+autograd&oq=pytorch+autograd&aqs=chrome..69i57j35i39j35i39i650j0i67i650l7.4576j0j7&sourceid=chrome&ie=UTF-8
