@@ -108,7 +108,8 @@ class repWeightSharingKPNet(nn.Module):
     def forward(self, x_in):
         x_irradiance = x_in[:, 0:3]
         x_albedo = x_in[:, 3:6]
-        x_inputs = torch.cat((BMFRGammaCorrection(x_irradiance * x_albedo),
+        # x_inputs = torch.cat((BMFRGammaCorrection(x_irradiance * x_albedo),
+        x_inputs = torch.cat((BMFRGammaCorrection(x_irradiance),
                                             x_in[:, 3:]), axis=1)
         
         x0_out = x_inputs
