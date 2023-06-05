@@ -18,18 +18,221 @@
 
 
 
-* TODO make clear x_alpha,x_guidemap in net.py!
+* DONE make clear: x_alpha,x_guidemap in net.py?
 
 
-* TODO use CPU backend AI3D to train and inference
 
-add RepVGG Layer:
-    implement forward, backward
+* DONE make clear: how to use AI3D?
 
 
-* TODO AI3D implement autograd, so custom layer(e.g. RepVGG Layer) only need forward!
+loss???
 
-refer to:
-https://www.qiniu.com/qfans/qnso-65425429
+layer_{n-1}:
+output: 12 channel
 
-https://www.google.com/search?q=pytorch+autograd&oq=pytorch+autograd&aqs=chrome..69i57j35i39j35i39i650j0i67i650l7.4576j0j7&sourceid=chrome&ie=UTF-8
+last layer:
+output: 3 channel
+
+
+loss delta = dE/dy_k * f'
+
+need f' !!!
+
+
+
+
+输入层节点数：
+image: 128*128
+depthNumber: 10
+# p_0_0,...,p_0_9,  p_1_0,...
+
+
+last RepVGG层节点数：
+feature map: 128*128
+filterNumber: 12
+
+
+输出层节点数：
+feature map: 128*128
+# filterNumber: 3
+depthNumber: 3
+
+
+use which layer to output???not lineary layer???
+
+
+
+compute:output,label: 128*128*3
+
+# e = \frac{1}{3N}
+e = 1/3N * sum(...)
+
+
+computeDelta:output,label: 128*128*3
+
+TODO f = ?
+
+TODO df(net)/dnet = ?
+
+
+
+
+# p_0_0,...,p_0_11,  p_1_0,...
+
+
+# loss backward?
+
+
+
+last layer use identity activate func
+
+
+give fake code
+
+
+# * TODO make clear: RepVGG Layer backward?
+
+
+
+# refer to https://tangshusen.me/Dive-into-DL-PyTorch/#/chapter05_CNN/5.9_googlenet
+
+* DONE study: pytorch: cuda for train?
+
+
+
+* DONE study: AI3D: only support inference?
+
+
+how to load .pt file?
+    only support ONND model(train model file)?
+
+how to implement output layer forward?
+
+
+
+
+* TODO use WebNN to inference
+
+# run lenet?
+
+# read lenet code?
+
+# model loader api?
+
+** TODO prepare dataset
+
+
+** TODO load .pt file
+
+load .npy files instead of .pt
+
+
+** TODO inference
+
+
+** TODO write output to .png
+
+
+test performance
+
+
+
+** TODO change backend to webgpu
+
+
+test performance
+
+
+
+* TODO AI3D: use WebNN as backend
+
+
+
+# * TODO pytorch: train in rtx in cuda/nccl backend?
+
+
+* TODO pytorch: cuda for train?
+
+use or not use cuda for train
+
+test time, refer to:
+https://zhuanlan.zhihu.com/p/358220419
+
+
+
+
+* TODO path tracer use WebGPU to render a corner box scene
+
+
+
+* TODO path tracer generate train dataset
+
+only 1spp
+
+
+
+* TODO train
+
+
+
+
+* TODO inference
+
+
+only 1spp
+
+
+should work with webgpu, refer to:
+https://www.w3.org/TR/webnn/#programming-model-device-selection
+https://www.w3.org/TR/webnn/#api-ml
+https://www.w3.org/TR/webnn/#api-mlcontext-webgpu-interop
+https://www.w3.org/TR/webnn/#api-mlcommandencoder
+
+
+
+
+
+
+* TODO acc 1spp with frames
+
+** TODO for train
+
+** TODO for inference
+
+
+
+
+
+# * TODO AI3D: refactor train, inference refer to pytorch
+
+
+# * TODO AI3D: FoldLayer support depth
+
+
+
+
+# * TODO use CPU backend AI3D to train and inference
+
+# add RepVGG Layer:
+#     implement forward, backward
+
+
+# * TODO AI3D implement autograd, so custom layer(e.g. RepVGG Layer) and loss(e.g. SMAPELoss) only need forward!
+
+# refer to:
+# https://www.google.com/search?q=%E8%87%AA%E5%8A%A8%E5%BE%AE%E5%88%86&oq=%E8%87%AA%E5%8A%A8%E5%BE%AE%E5%88%86&aqs=chrome..69i57.105j0j7&sourceid=chrome&ie=UTF-8
+
+# https://www.qiniu.com/qfans/qnso-65425429
+
+# https://www.google.com/search?q=pytorch+autograd&oq=pytorch+autograd&aqs=chrome..69i57j35i39j35i39i650j0i67i650l7.4576j0j7&sourceid=chrome&ie=UTF-8
+
+
+
+# * TODO AI3D implement save train's weight,bias in .a3 file, and read it when inference
+
+
+# * TODO AI3D: support tensor, view
+
+# * TODO AI3D: add WebGPU backend
+
+
