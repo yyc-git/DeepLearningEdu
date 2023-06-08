@@ -50,6 +50,7 @@ class SMAPELoss(nn.Module):
         self.eps = eps
     
     def forward(self, outputs, targets):
+        # print(outputs.shape)
         denominator = outputs
         loss = torch.mean(torch.abs(outputs - targets) / (denominator.abs() + targets.abs() + self.eps))
         return loss
@@ -69,7 +70,11 @@ def train(model, device, dataloader, optimizer, epoch, writer):
         targets = targets.to(device, non_blocking=True)
         
         outputs = model(inputs)
+        # print(inputs)
+        # print(outputs)
+        # print(criterion)
         loss = criterion(outputs, targets)
+        # print(loss)
         loss.backward()
 
         print("ccc")
@@ -136,9 +141,17 @@ def Inference(model, device, dataset, dataloader, saving_root=""):
             
     return SSIM_mean, PSNR_mean
 
+def make_equivalent_kernel(conv5Wight, conv3Weight, conv1Weight, has_identity_pass=False):
+    kernel = conv5Wight + torch.nn.functional.pad(conv3Weight, [1, 1, 1, 1]) + torch.nn.functional.pad(conv1Weight, [2, 2, 2, 2])
+    if has_identity_pass:
+        identity_pass_weight = torch.eye(kernel.shape[0], device=conv5Wight.device).reshape((kernel.shape[0], kernel.shape[0], 1, 1))
+        identity_pass_weight = torch.nn.functional.pad(identity_pass_weight , [2, 2, 2, 2])
+        kernel += identity_pass_weight
+
+    return kernel.detach().cpu().clone()
+
 
 if __name__ == "__main__":
-
     # torch.cuda.set_device(1)
     # torch.backends.cudnn.deterministic = True  # same result for cpu and gpu
     # torch.backends.cudnn.benchmark = False # key in here: Should be False. Ture will make the training process unstable
@@ -175,6 +188,7 @@ if __name__ == "__main__":
             os.makedirs(folder)
 
     model = net.repWeightSharingKPNet(device).to(device)
+    print(model)
     optimizer = torch.optim.Adam(model.parameters(), learning_rate)
     writer = SummaryWriter(tensorboard_saving_path)
 
@@ -193,13 +207,36 @@ if __name__ == "__main__":
             # writer.add_scalar("PSNR-val", _PSNR_val, epoch)
 
             # if epoch > epochs * 0.8:
-            if True:
-                print("begin test")
-                _SSIM_test, _PSNR_test = Inference(model, device, dataset_test, dataloader_test, test_saving_root)
-                writer.add_scalar("SSIM-test", _SSIM_test, epoch)
-                writer.add_scalar("PSNR-test", _PSNR_test, epoch)                
+
+            # if True:
+            #     print("begin test")
+            #     _SSIM_test, _PSNR_test = Inference(model, device, dataset_test, dataloader_test, test_saving_root)
+            #     writer.add_scalar("SSIM-test", _SSIM_test, epoch)
+            #     writer.add_scalar("PSNR-test", _PSNR_test, epoch)                
             
-            torch.save({'model_state_dict': model.state_dict(), 'optimizer_state_dict': optimizer.state_dict()}, os.path.join(model_saving_path, "model.pt"))
+            print("save Model's state_dict:")
+            modelDict = model.state_dict()
+            conv1Weight = make_equivalent_kernel(modelDict["conv1_5.weight"], modelDict["conv1_3.weight"], modelDict["conv1_1.weight"], False)
+            conv2Weight = make_equivalent_kernel(modelDict["conv2_5.weight"], modelDict["conv2_3.weight"], modelDict["conv2_1.weight"], True)
+            conv3Weight = make_equivalent_kernel(modelDict["conv3_5.weight"], modelDict["conv3_3.weight"], modelDict["conv3_1.weight"], True)
+            conv4Weight = make_equivalent_kernel(modelDict["conv4_5.weight"], modelDict["conv4_3.weight"], modelDict["conv4_1.weight"], True)
+            conv5Weight = make_equivalent_kernel(modelDict["conv5_5.weight"], modelDict["conv5_3.weight"], modelDict["conv5_1.weight"], True)
+            convFinalWeight = make_equivalent_kernel(modelDict["conv_final_5.weight"], modelDict["conv_final_3.weight"], modelDict["conv_final_1.weight"], False)
+            np.save(os.path.join(model_saving_path, "conv1Weight.npy"), conv1Weight)
+            np.save(os.path.join(model_saving_path, "conv2Weight.npy"), conv2Weight)
+            np.save(os.path.join(model_saving_path, "conv3Weight.npy"), conv3Weight)
+            np.save(os.path.join(model_saving_path, "conv4Weight.npy"), conv4Weight)
+            np.save(os.path.join(model_saving_path, "conv5Weight.npy"), conv5Weight)
+            np.save(os.path.join(model_saving_path, "convFinalWeight.npy"), convFinalWeight)
+            # for param_tensor in model.state_dict():
+            #     # print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+            #     # print(param_tensor, "\t", model.state_dict()[param_tensor])
+            #     # data = model.state_dict()[param_tensor].data.cpu().numpy()
+            #     data = model.state_dict()[param_tensor].data.numpy()
+
+            #     np.save(os.path.join(model_saving_path, param_tensor + ".npy"), data)
+
+            # torch.save({'model_state_dict': model.state_dict(), 'optimizer_state_dict': optimizer.state_dict()}, os.path.join(model_saving_path, "model.pt"))
 
     writer.flush()
     writer.close()
