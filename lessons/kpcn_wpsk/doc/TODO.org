@@ -111,7 +111,7 @@ how to implement output layer forward?
 
 
 
-* TODO use WebNN to inference
+* DONE use WebNN to inference
 
 # run lenet?
 
@@ -144,6 +144,20 @@ test performance
 
 
 
+* TODO inference with webgpu input and output
+
+
+only 1spp
+
+
+should work with webgpu, refer to:
+https://www.w3.org/TR/webnn/#programming-model-device-selection
+https://www.w3.org/TR/webnn/#api-ml
+https://www.w3.org/TR/webnn/#api-mlcontext-webgpu-interop
+https://www.w3.org/TR/webnn/#api-mlcommandencoder
+
+
+
 * TODO AI3D: use WebNN as backend
 
 
@@ -172,21 +186,6 @@ only 1spp
 
 
 * TODO train
-
-
-
-
-* TODO inference
-
-
-only 1spp
-
-
-should work with webgpu, refer to:
-https://www.w3.org/TR/webnn/#programming-model-device-selection
-https://www.w3.org/TR/webnn/#api-ml
-https://www.w3.org/TR/webnn/#api-mlcontext-webgpu-interop
-https://www.w3.org/TR/webnn/#api-mlcommandencoder
 
 
 
